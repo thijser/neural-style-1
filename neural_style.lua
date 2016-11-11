@@ -474,7 +474,6 @@ function StyleLoss:updateGradInput(input, gradOutput)
   end
   self.gradInput:mul(self.strength)
   self.gradInput:add(gradOutput)
-  print(self.gradInput)
   return self.gradInput
 end
 
