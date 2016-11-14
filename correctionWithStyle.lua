@@ -81,7 +81,7 @@ local function main(params)
   end
   local pre_image = image.load(params.pre_image, 3)
   pre_image = image.scale(pre_image, params.image_size, 'bilinear')
-  local pre_image_caffe = preprocess(content_image):float()
+  local pre_image_caffe = preprocess(pre_image):float()
   
 end
 
