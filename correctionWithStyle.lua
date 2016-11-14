@@ -82,7 +82,16 @@ local function main(params)
   local pre_image = image.load(params.pre_image, 3)
   pre_image = image.scale(pre_image, params.image_size, 'bilinear')
   local pre_image_caffe = preprocess(content_image):float()
+  
+end
 
+function preprocess(img)
+  local mean_pixel = torch.DoubleTensor({103.939, 116.779, 123.68})
+  local perm = torch.LongTensor{3, 2, 1}
+  img = img:index(1, perm):mul(256.0)
+  mean_pixel = mean_pixel:view(3, 1, 1):expandAs(img)
+  img:add(-1, mean_pixel)
+  return img
 end
 
 
