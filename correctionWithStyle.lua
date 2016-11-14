@@ -99,7 +99,100 @@ local function main(params)
     end
    end
   
-  print(post_image_caffe)
+
+  -- Set up the network, inserting style and content loss modules
+  local content_losses, style_losses = {}, {}
+  local next_content_idx, next_style_idx = 1, 1
+  local net = nn.Sequential()
+  if params.tv_weight > 0 then
+    local tv_mod = nn.TVLoss(params.tv_weight):float()
+    if params.gpu >= 0 then
+      if params.backend ~= 'clnn' then
+        tv_mod:cuda()
+      else
+        tv_mod:cl()
+      end
+    end
+    net:add(tv_mod)
+  end
+  for i = 1, #cnn do
+    if next_content_idx <= #content_layers or next_style_idx <= #style_layers then
+      local layer = cnn:get(i)
+      local name = layer.name
+      local layer_type = torch.type(layer)
+      local is_pooling = (layer_type == 'cudnn.SpatialMaxPooling' or layer_type == 'nn.SpatialMaxPooling')
+      if is_pooling and params.pooling == 'avg' then
+        assert(layer.padW == 0 and layer.padH == 0)
+        local kW, kH = layer.kW, layer.kH
+        local dW, dH = layer.dW, layer.dH
+        local avg_pool_layer = nn.SpatialAveragePooling(kW, kH, dW, dH):float()
+        if params.gpu >= 0 then
+          if params.backend ~= 'clnn' then
+            avg_pool_layer:cuda()
+          else
+            avg_pool_layer:cl()
+          end
+        end
+        local msg = 'Replacing max pooling at layer %d with average pooling'
+        print(string.format(msg, i))
+        net:add(avg_pool_layer)
+      else
+        net:add(layer)
+      end
+      if name == content_layers[next_content_idx] then
+        print("Setting up content layer", i, ":", layer.name)
+        local target = net:forward(content_image_caffe):clone()
+        local norm = params.normalize_gradients
+        local loss_module = nn.ContentLoss(params.content_weight, target, norm):float()
+        if params.gpu >= 0 then
+          if params.backend ~= 'clnn' then
+            loss_module:cuda()
+          else
+            loss_module:cl()
+          end
+        end
+        net:add(loss_module)
+        table.insert(content_losses, loss_module)
+        next_content_idx = next_content_idx + 1
+      end
+      if name == style_layers[next_style_idx] then
+        print("Setting up style layer  ", i, ":", layer.name)
+        local gram = GramMatrix():float()
+        if params.gpu >= 0 then
+          if params.backend ~= 'clnn' then
+            gram = gram:cuda()
+          else
+            gram = gram:cl()
+          end
+        end
+        local target = nil
+        for i = 1, #style_images_caffe do
+          local target_features = net:forward(style_images_caffe[i]):clone()
+          local target_i = gram:forward(target_features):clone()
+          target_i:div(target_features:nElement())
+          target_i:mul(style_blend_weights[i])
+          if i == 1 then
+            target = target_i
+          else
+            target:add(target_i)
+          end
+        end
+        local norm = params.normalize_gradients
+        local loss_module = nn.StyleLoss(params.style_weight, target, norm):float()
+        if params.gpu >= 0 then
+          if params.backend ~= 'clnn' then
+            loss_module:cuda()
+          else
+            loss_module:cl()
+          end
+        end
+        net:add(loss_module)
+        table.insert(style_losses, loss_module)
+        next_style_idx = next_style_idx + 1
+      end
+    end
+  end
+  
 end
 
 
