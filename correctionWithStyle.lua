@@ -116,7 +116,7 @@ local function main(params)
     net:add(tv_mod)
   end
   for i = 1, #cnn do
-    if next_content_idx <= #pre_image or next_style_idx <= #style_layers then
+--    if next_content_idx <= #pre_image or next_style_idx <= #style_layers then
       local layer = cnn:get(i)
       local name = layer.name
       local layer_type = torch.type(layer)
@@ -191,7 +191,7 @@ local function main(params)
         next_style_idx = next_style_idx + 1
       end
     end
-  end
+ -- end
   
 end
 
