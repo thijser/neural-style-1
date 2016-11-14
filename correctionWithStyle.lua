@@ -91,9 +91,11 @@ local function main(params)
   
   if params.gpu >= 0 then
     if params.backend ~= 'clnn' then
-      post_image_caffe = pre_image_caffe:cuda()
+      pre_image_caffe = pre_image_caffe:cuda()
+      post_image_caffe = post_image_caffe:cuda() 
     else
-            post_image_caffe = pre_image_caffe:cl()
+            pre_image_caffe = pre_image_caffe:cl()
+            post_image_caffe = post_image_caffe:cl()
     end
    end
   
