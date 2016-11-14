@@ -21,7 +21,7 @@ cmd:option('-gpu', 0, 'Zero-indexed ID of the GPU to use; for CPU mode set -gpu 
 cmd:option('-content_weight', 5e0)
 cmd:option('-style_weight', 1e2)
 cmd:option('-tv_weight', 1e-3)
-cmd:option('-num_iterations', 1000)
+cmd:option('-num_iterations', 5000)
 cmd:option('-normalize_gradients', false)
 cmd:option('-init', 'random', 'random|image')
 cmd:option('-optimizer', 'lbfgs', 'lbfgs|adam')
