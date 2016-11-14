@@ -79,12 +79,28 @@ local function main(params)
       cnn:cl()
     end
   end
+  --load pre image 
   local pre_image = image.load(params.pre_image, 3)
   pre_image = image.scale(pre_image, params.image_size, 'bilinear')
   local pre_image_caffe = preprocess(pre_image):float()
   
+  --load post image 
+    local post_image = image.load(params.post_image, 3)
+  post_image = image.scale(post_image, params.image_size, 'bilinear')
+  local post_image_caffe = preprocess(post_image):float()
+  
+  if params.gpu >= 0 then
+    if params.backend ~= 'clnn' then
+      post_image_caffe = pre_image_caffe:cuda()
+    else
+            post_image_caffe = pre_image_caffe:cl()
+    end
+   end
+  
 end
 
+
+--prepare image for caffe 
 function preprocess(img)
   local mean_pixel = torch.DoubleTensor({103.939, 116.779, 123.68})
   local perm = torch.LongTensor{3, 2, 1}
@@ -93,6 +109,7 @@ function preprocess(img)
   img:add(-1, mean_pixel)
   return img
 end
+
 
 
 local params = cmd:parse(arg)
