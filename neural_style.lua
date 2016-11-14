@@ -23,7 +23,7 @@ cmd:option('-style_weight', 1e2)
 cmd:option('-tv_weight', 1e-3)
 cmd:option('-num_iterations', 5000)
 cmd:option('-normalize_gradients', false)
-cmd:option('-init', 'random', 'random|image')
+cmd:option('-init', 'image', 'random|image')
 cmd:option('-optimizer', 'lbfgs', 'lbfgs|adam')
 cmd:option('-learning_rate', 1e1)
 
