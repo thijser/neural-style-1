@@ -99,6 +99,7 @@ local function main(params)
     end
    end
   
+  print(post_image_caffe)
 end
 
 
