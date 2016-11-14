@@ -9,14 +9,15 @@ require 'loadcaffe'
 local cmd = torch.CmdLine()
 
 -- Basic options
-cmd:option('-style_image', 'examples/inputs/seated-nude.jpg',
+cmd:option('-pre_image', 'examples/inputs/seated-nude.jpg',
            'Style target image')
 cmd:option('-style_blend_weights', 'nil')
-cmd:option('-content_image', 'examples/inputs/tubingen.jpg',
+cmd:option('-post_image', 'examples/inputs/tubingen.jpg',
            'Content target image')
 cmd:option('-image_size', 512, 'Maximum height / width of generated image')
 cmd:option('-gpu', 0, 'Zero-indexed ID of the GPU to use; for CPU mode set -gpu = -1')
-
+cmd:option('-edit_image', 'examples/inputs/seated-nude.jpg',
+           'Style target image')
 -- Optimization options
 cmd:option('-content_weight', 5e0)
 cmd:option('-style_weight', 1e2)
