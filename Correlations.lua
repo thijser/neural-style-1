@@ -140,6 +140,18 @@ local function main(params)
       else
         net:add(layer)
       end
+            if name == content_layers[next_content_idx] then
+        print("Setting up content layer", i, ":", layer.name)
+        local target = net:forward(content_image_caffe):clone()
+        local norm = params.normalize_gradients
+        local loss_module = nn.ContentLoss(params.content_weight, target, norm):float()
+        if params.gpu >= 0 then
+          if params.backend ~= 'clnn' then
+            loss_module:cuda()
+          else
+            loss_module:cl()
+          end
+        end
   end
   
 end
