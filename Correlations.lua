@@ -120,6 +120,7 @@ local function main(params)
   end
 
   for i = 1, #cnn do
+      if next_content_idx <= #pre_image or next_style_idx <= #post_image then
   	print("now setting up layer: ".. i)
         local layer = cnn:get(i)
       local name = layer.name
@@ -198,6 +199,7 @@ local function main(params)
       end
           print(i.. "here")
     end
+    end
 
   
 
@@ -213,6 +215,8 @@ local function main(params)
   end
   collectgarbage()
 end
+
+
 
 --prepare image for caffe 
 function preprocess(img)
