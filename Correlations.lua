@@ -205,7 +205,7 @@ local function main(params)
           print(i.. "here")
     end
     end
-
+	print(net)
   
 
    --We don't need the base CNN anymore, so clean it up to save memory.
