@@ -211,7 +211,7 @@ local function main(params)
 --    end--
 --  end
 --  collectgarbage()
-end
+
 
 --prepare image for caffe 
 function preprocess(img)
