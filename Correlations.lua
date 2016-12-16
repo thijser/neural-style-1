@@ -199,7 +199,18 @@ local function main(params)
     end
   end
   
-end
+
+  -- We don't need the base CNN anymore, so clean it up to save memory.
+  cnn = nil
+  for i=1,#net.modules do
+    local module = net.modules[i]
+    if torch.type(module) == 'nn.SpatialConvolutionMM' then
+        -- remove these, not used, but uses gpu memory
+        module.gradWeight = nil
+        module.gradBias = nil
+    end
+  end
+  collectgarbage()
 
 
 --prepare image for caffe 
