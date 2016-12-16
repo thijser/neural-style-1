@@ -79,16 +79,18 @@ local function main(params)
       cnn:cl()
     end
   end
+  print("loading pre image")
   --load pre image 
   local pre_image = image.load(params.pre_image, 3)
   pre_image = image.scale(pre_image, params.image_size, 'bilinear')
   local pre_image_caffe = preprocess(pre_image):float()
-  
+    print("loading post image")
   --load post image 
     local post_image = image.load(params.post_image, 3)
   post_image = image.scale(post_image, params.image_size, 'bilinear')
   local post_image_caffe = preprocess(post_image):float()
   
+  print("selecting gpu")
   if params.gpu >= 0 then
     if params.backend ~= 'clnn' then
       pre_image_caffe = pre_image_caffe:cuda()
@@ -102,6 +104,7 @@ local function main(params)
 
   -- Set up the network, inserting style and content loss modules
   local CorrectionLoss = {}
+  print("setting up network && inserting loss modules)
   local next_content_idx, next_style_idx = 1, 1
   local net = nn.Sequential()
   if params.tv_weight > 0 then
