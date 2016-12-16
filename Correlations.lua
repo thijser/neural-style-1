@@ -196,8 +196,9 @@ local function main(params)
        table.insert(style_losses, loss_module)
         next_style_idx = next_style_idx + 1
       end
+          print(i.. here)
     end
-    print(i.. here)
+
   end
   
 
