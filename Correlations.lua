@@ -140,7 +140,7 @@ local function main(params)
       else
         net:add(layer)
       end
-      if name == content_layers[next_content_idx] then
+      if name == pre_image[next_content_idx] then
         print("Setting up content layer", i, ":", layer.name)
         local target = net:forward(content_image_caffe):clone()
         local norm = params.normalize_gradients
