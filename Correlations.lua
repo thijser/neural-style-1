@@ -124,7 +124,8 @@ local function main(params)
   print(#pre_image)
   print(next_style_idx)
   print(#post_image)
-      if next_content_idx <= #pre_image or next_style_idx <= #post_image then
+  --temp fix to change pre-image into post image may cause trouble if #pre_image!=#post_image 
+      if next_content_idx <= #pre_image or next_style_idx <= #pre_image then
   	    print("now setting up layer: ".. i)
         local layer = cnn:get(i)
       local name = layer.name
