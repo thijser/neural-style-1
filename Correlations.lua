@@ -120,7 +120,10 @@ local function main(params)
   end
 
   for i = 1, #cnn do
-  print(next_content_idx.." " .. #pre_image .. " - " ..next_style_idx.." " .. #post_image)
+  print(next_content_idx)
+  print(#pre_image)
+  print(next_style_idx)
+  print(#post_image)
       if next_content_idx <= #pre_image or next_style_idx <= #post_image then
   	    print("now setting up layer: ".. i)
         local layer = cnn:get(i)
