@@ -120,8 +120,9 @@ local function main(params)
   end
 
   for i = 1, #cnn do
+  print(next_content_idx.." " .. #pre_image .. " - " ..next_style_idx.." " .. #post_image)
       if next_content_idx <= #pre_image or next_style_idx <= #post_image then
-  	print("now setting up layer: ".. i)
+  	    print("now setting up layer: ".. i)
         local layer = cnn:get(i)
       local name = layer.name
       local layer_type = torch.type(layer)
