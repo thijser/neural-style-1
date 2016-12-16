@@ -197,6 +197,7 @@ local function main(params)
         next_style_idx = next_style_idx + 1
       end
     end
+    print(i.. here)
   end
   
 
