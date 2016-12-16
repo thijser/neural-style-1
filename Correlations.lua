@@ -143,6 +143,7 @@ local function main(params)
       else
         net:add(layer)
       end
+      
       if name == pre_image[next_content_idx] then
         print("Setting up content layer", i, ":", layer.name)
         local target = net:forward(content_image_caffe):clone()
@@ -159,6 +160,43 @@ local function main(params)
         table.insert(content_losses, loss_module)
         next_content_idx = next_content_idx + 1
       end  
+ 
+      if name == post_image[next_style_idx] then
+       print("Setting up style layer  ", i, ":", layer.name)
+       local gram = GramMatrix():float()
+       if params.gpu >= 0 then
+         if params.backend ~= 'clnn' then
+           gram = gram:cuda()
+         else
+           gram = gram:cl()
+         end
+       end
+       local target = nil
+       for i = 1, #style_images_caffe do
+         local target_features = net:forward(style_images_caffe[i]):clone()
+         local target_i = gram:forward(target_features):clone()
+         target_i:div(target_features:nElement())
+         target_i:mul(style_blend_weights[i])
+         if i == 1 then
+           target = target_i
+         else
+           target:add(target_i)
+         end
+       end
+       local norm = params.normalize_gradients
+       local loss_module = nn.StyleLoss(params.style_weight, target, norm):float()
+       if params.gpu >= 0 then
+         if params.backend ~= 'clnn' then
+           loss_module:cuda()
+        else
+           loss_module:cl()
+         end
+       end
+       net:add(loss_module)
+       table.insert(style_losses, loss_module)
+        next_style_idx = next_style_idx + 1
+      end
+    end
   end
   
 end
