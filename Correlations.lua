@@ -120,7 +120,7 @@ local function main(params)
   end
 
   for i = 1, #cnn do
-  	
+  	print("now setting up layer: "+ i)
         local layer = cnn:get(i)
       local name = layer.name
       local layer_type = torch.type(layer)
