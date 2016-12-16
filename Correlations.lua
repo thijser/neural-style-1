@@ -104,7 +104,7 @@ local function main(params)
 
   -- Set up the network, inserting style and content loss modules
   local CorrectionLoss = {}
-  print("setting up network && inserting loss modules)
+  print("setting up network && inserting loss modules")
   local next_content_idx, next_style_idx = 1, 1
   local net = nn.Sequential()
   if params.tv_weight > 0 then
