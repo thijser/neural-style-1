@@ -201,7 +201,7 @@ local function main(params)
 
   
 
-   We don't need the base CNN anymore, so clean it up to save memory.
+   --We don't need the base CNN anymore, so clean it up to save memory.
   cnn = nil
   for i=1,#net.modules do
     local module = net.modules[i]
