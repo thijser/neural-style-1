@@ -180,7 +180,7 @@ local function main(params)
       else
         net:add(layer)
       end
-     print(style_images_caffe[1])
+      
      local targetpost = net:forward(style_images_caffe[1]):clone()
      local target = net:forward(content_image_caffe):clone()
 
@@ -360,7 +360,7 @@ local function main(params)
 end
   
 function correlate(preimage,postimage,actualImage)
-	return postimage/preimage*actualImage
+	return postimage/preimage
 end
 
 
