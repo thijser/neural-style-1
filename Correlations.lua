@@ -153,11 +153,14 @@ local function main(params)
         net:add(layer)
       end
       
+              print(name)
+              print(next_content_idx)
+              print(pre_image)
       if name == pre_image[next_content_idx] then
         print("Setting up content layer", i, ":", layer.name)
         local target = net:forward(content_image_caffe):clone()
         alltargets.push(target);
-        print(target);
+
         local norm = params.normalize_gradients
         local loss_module = nn.StyleLoss(params.content_weight, target, norm):float()
         if params.gpu >= 0 then
