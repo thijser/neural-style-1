@@ -206,6 +206,7 @@ local function main(params)
         for i = 1, #style_images_caffe do
           local target_features = net:forward(style_images_caffe[i]):clone()
 
+		  
 	      target=target+target_features
           
         end
@@ -213,7 +214,7 @@ local function main(params)
         local loss_module = nn.ContentLoss(params.style_weight, target, norm):float()
         if params.gpu >= 0 then
           if params.backend ~= 'clnn' then
-            loss_modul:cuda()
+            loss_module:cuda()
           else
             loss_module:cl()
           end
