@@ -207,6 +207,8 @@ local function main(params)
           local target_i = gram:forward(target_features):clone()
           target_i:div(target_features:nElement())
           target_i:mul(style_blend_weights[i])
+          print("target"..target)
+          print("features".. target_features)
           target:sum(target,target_features)
           
         end
