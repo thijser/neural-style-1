@@ -364,7 +364,7 @@ local function main(params)
 end
   
 function correlate(preimage,postimage,actualImage)
-	return torch:cmul(torch:cdiv(postimage,preimage)*actualImage)
+	return torch.cmul(torch.cdiv(postimage,preimage)*actualImage)
 end
 
 
