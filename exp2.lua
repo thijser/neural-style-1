@@ -180,8 +180,8 @@ local function main(params)
       else
         net:add(layer)
       end
-     print(style_images_caffe[0])
-     local targetpost = net:forward(style_images_caffe[0]):clone()
+     print(style_images_caffe[1])
+     local targetpost = net:forward(style_images_caffe[1]):clone()
      local target = net:forward(content_image_caffe):clone()
 
 	 
@@ -213,13 +213,12 @@ local function main(params)
           end
         end
 
-        for i = 1, #style_images_caffe do
+
           local actualImage = net:forward(ToBeCorrected_image_caffe):clone()
 
 		  
 	      target=correlate(target,targetpost,actualImage)
           
-        end
         local norm = params.normalize_gradients
         local loss_module = nn.ContentLoss(params.style_weight, target, norm):float()
         if params.gpu >= 0 then
