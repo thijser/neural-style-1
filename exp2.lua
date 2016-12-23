@@ -377,7 +377,7 @@ function correlate(preimage,postimage,actualImage)
 	nan_mask = target:ne(target)
 	target[nan_mask] = 1
 	nan_mask=nil
-	print(target[{{1,100}}])
+	print(target[nan_mask])
 	  collectgarbage()
 	return target
 end
