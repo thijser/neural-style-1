@@ -174,7 +174,7 @@ local function main(params)
         net:add(layer)
       end
      local target = net:forward(content_image_caffe):clone()
-     print (target)
+
       if name == content_layers[next_content_idx] then
       	print ("happyness!!!!!!!!!!!!!!!!!" .. name .. next_content_idx)
         print("Setting up content layer", i, ":", layer.name)
@@ -205,12 +205,8 @@ local function main(params)
 
         for i = 1, #style_images_caffe do
           local target_features = net:forward(style_images_caffe[i]):clone()
-          local target_i = gram:forward(target_features):clone()
-          target_i:div(target_features:nElement())
-          target_i:mul(style_blend_weights[i])
-          print("target"..target)
-          print("features".. target_features)
-          target:sum(target,target_features)
+
+	      target=target+target_features
           
         end
         local norm = params.normalize_gradients
