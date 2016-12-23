@@ -119,6 +119,9 @@ local function main(params)
     net:add(tv_mod)
   end
 
+  local alltargets  = {}
+
+
   for i = 1, #cnn do
   print(next_content_idx)
   print(#pre_image)
@@ -153,6 +156,7 @@ local function main(params)
       if name == pre_image[next_content_idx] then
         print("Setting up content layer", i, ":", layer.name)
         local target = net:forward(content_image_caffe):clone()
+        alltargets.push(target);
         local norm = params.normalize_gradients
         local loss_module = nn.StyleLoss(params.content_weight, target, norm):float()
         if params.gpu >= 0 then
@@ -187,6 +191,7 @@ local function main(params)
            target = target_i
          else
            target:add(target_i)
+           alltargets.push(target);
          end
        end
        local norm = params.normalize_gradients
@@ -205,7 +210,7 @@ local function main(params)
           print(i.. "here")
     end
     end
-	print(net)
+	print(alltargets)
   
 
    --We don't need the base CNN anymore, so clean it up to save memory.
