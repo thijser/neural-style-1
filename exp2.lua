@@ -84,6 +84,7 @@ local function main(params)
   local content_image = image.load(params.content_image, 3)
   content_image = image.scale(content_image, params.image_size, 'bilinear')
   local content_image_caffe = preprocess(content_image):float() 
+
   
     local ToBeCorrected = image.load(params.ToBeCorrected, 3)
     local ToBeCorrected_image_caffe = preprocess(ToBeCorrected):float()
@@ -92,6 +93,9 @@ local function main(params)
   local style_size = math.ceil(params.style_scale * params.image_size)
   local style_image_list = params.style_image:split(',')
   local style_images_caffe = {}
+  
+    content_image=nil
+   
   for _, img_path in ipairs(style_image_list) do
     local img = image.load(img_path, 3)
     img = image.scale(img, style_size, 'bilinear')
@@ -375,7 +379,7 @@ function correlate(preimage,postimage,actualImage)
 	nan_mask = target:ne(target)
 	target[nan_mask] = 1
 	nan_mask=nil
-	print(target)
+	print(target[{{1,200}}])
 	  collectgarbage()
 	return target
 end
