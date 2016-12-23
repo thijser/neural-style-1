@@ -188,7 +188,7 @@ local function main(params)
      --      loss_module:cl()
       --    end
       --  end
-        net:add(loss_module)
+       -- net:add(loss_module)
         table.insert(content_losses, loss_module)
         next_content_idx = next_content_idx + 1
       end
