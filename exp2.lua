@@ -207,7 +207,7 @@ local function main(params)
           local target_features = net:forward(style_images_caffe[i]):clone()
 
 		  
-	      target=target+target_features
+	      target=target-target_features
           
         end
         local norm = params.normalize_gradients
