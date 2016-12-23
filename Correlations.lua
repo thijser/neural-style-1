@@ -152,11 +152,11 @@ local function main(params)
       else
         net:add(layer)
       end
-
-
-     -- if name == pre_image[next_content_idx] then
+      
+      
+      --if name == pre_image[next_content_idx] then
         print("Setting up content layer", i, ":", layer.name)
-        local target = net:forward(content_image_caffe):clone()
+        local target = net:forward(pre_image):clone()
         alltargets.push(target);
 
         local norm = params.normalize_gradients
@@ -173,7 +173,7 @@ local function main(params)
         next_content_idx = next_content_idx + 1
       --end  
  
-      --if name == post_image[next_style_idx] then
+      if name == post_image[next_style_idx] then
        print("Setting up style layer  ", i, ":", layer.name)
        local gram = GramMatrix():float()
        if params.gpu >= 0 then
@@ -208,7 +208,7 @@ local function main(params)
        net:add(loss_module)
        table.insert(style_losses, loss_module)
         next_style_idx = next_style_idx + 1
-      --end
+      end
           print(i.. "here")
     end
     end
