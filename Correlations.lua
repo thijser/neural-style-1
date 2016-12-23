@@ -123,13 +123,13 @@ local function main(params)
 
 
   for i = 1, #cnn do
-  print(next_content_idx)
-  print(#pre_image)
-  print(next_style_idx)
-  print(#post_image)
+--  print(next_content_idx)
+--  print(#pre_image)
+--  print(next_style_idx)
+--  print(#post_image)
   --temp fix to change pre-image into post image may cause trouble if #pre_image!=#post_image 
       if next_content_idx <= 3 or next_style_idx <= 3 then
-  	    print("now setting up layer: ".. i)
+  	    --print("now setting up layer: ".. i)
         local layer = cnn:get(i)
       local name = layer.name
       local layer_type = torch.type(layer)
@@ -157,6 +157,7 @@ local function main(params)
         print("Setting up content layer", i, ":", layer.name)
         local target = net:forward(content_image_caffe):clone()
         alltargets.push(target);
+        print(target);
         local norm = params.normalize_gradients
         local loss_module = nn.StyleLoss(params.content_weight, target, norm):float()
         if params.gpu >= 0 then
