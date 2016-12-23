@@ -250,7 +250,7 @@ local function main(params)
     end
   end
   collectgarbage()
-  print("let's find the image".. " memory usage is now " ..collectgarbage("count")*1024) .. bytes)
+  print("let's find the image".. " memory usage is now " ..collectgarbage("count")*1024) .. "bytes")
   -- Initialize the image
   if params.seed >= 0 then
     torch.manualSeed(params.seed)
