@@ -126,12 +126,13 @@ local function main(params)
   if params.gpu >= 0 then
     if params.backend ~= 'clnn' then
       content_image_caffe = content_image_caffe:cuda()
-      content_image_caffe = content_image_caffe:cuda()
+      ToBeCorrected_image_caffe = ToBeCorrected_image_caffe:cuda()
       for i = 1, #style_images_caffe do
         style_images_caffe[i] = style_images_caffe[i]:cuda()
       end
     else
       content_image_caffe = content_image_caffe:cl()
+      ToBeCorrected_image_caffe = ToBeCorrected_image_caffe:cl()
       for i = 1, #style_images_caffe do
         style_images_caffe[i] = style_images_caffe[i]:cl()
       end
@@ -360,7 +361,7 @@ local function main(params)
 end
   
 function correlate(preimage,postimage,actualImage)
-	return preimage-actualImage
+	return postimage/preimage*actualImage
 end
 
 
