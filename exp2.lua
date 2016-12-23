@@ -208,7 +208,7 @@ local function main(params)
           target_i:div(target_features:nElement())
           target_i:mul(style_blend_weights[i])
           target:sum(target,target_features)
-          end
+          
         end
         local norm = params.normalize_gradients
         local loss_module = nn.ContentLoss(params.style_weight, target, norm):float()
