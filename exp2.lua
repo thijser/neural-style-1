@@ -369,9 +369,14 @@ end
 function correlate(preimage,postimage,actualImage)
 
 	target= torch.cmul(torch.cdiv(postimage,preimage),actualImage)
+	preimage=nil
+	postimage=nil
+	actualImage=nil
 	nan_mask = target:ne(target)
 	target[nan_mask] = 1
+	nan_mask=nil
 	print(target)
+	  collectgarbage()
 	return target
 end
 
