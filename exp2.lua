@@ -221,8 +221,8 @@ local function main(params)
 	      target=correlate(target,targetpost,actualImage)
 	      targetpost=nil
 	      actualImage=nil
-	      
-          print("now optimizing")
+	      print("seting target")
+
         local norm = params.normalize_gradients
         local loss_module = nn.ContentLoss(params.style_weight, target, norm):float()
         if params.gpu >= 0 then
@@ -250,7 +250,7 @@ local function main(params)
     end
   end
   collectgarbage()
-  
+  print("let's find the image")
   -- Initialize the image
   if params.seed >= 0 then
     torch.manualSeed(params.seed)
