@@ -11,6 +11,8 @@ local cmd = torch.CmdLine()
 -- Basic options
 cmd:option('-style_image', 'examples/inputs/seated-nude.jpg',
            'Style target image')
+cmd:option('-ToBeCorrected', 'examples/inputs/seated-nude.jpg',
+           'Style target image')           
 cmd:option('-style_blend_weights', 'nil')
 cmd:option('-content_image', 'examples/inputs/tubingen.jpg',
            'Content target image')
@@ -81,8 +83,12 @@ local function main(params)
   
   local content_image = image.load(params.content_image, 3)
   content_image = image.scale(content_image, params.image_size, 'bilinear')
-  local content_image_caffe = preprocess(content_image):float()
+  local content_image_caffe = preprocess(content_image):float() 
   
+    local ToBeCorrected = image.load(params.ToBeCorrected, 3)
+    local ToBeCorrected_image_caffe = preprocess(ToBeCorrected):float()
+      ToBeCorrected_image_caffe = image.scale(ToBeCorrected_image_caffe, params.image_size, 'bilinear')
+      
   local style_size = math.ceil(params.style_scale * params.image_size)
   local style_image_list = params.style_image:split(',')
   local style_images_caffe = {}
@@ -119,6 +125,7 @@ local function main(params)
 
   if params.gpu >= 0 then
     if params.backend ~= 'clnn' then
+      content_image_caffe = content_image_caffe:cuda()
       content_image_caffe = content_image_caffe:cuda()
       for i = 1, #style_images_caffe do
         style_images_caffe[i] = style_images_caffe[i]:cuda()
@@ -174,7 +181,8 @@ local function main(params)
         net:add(layer)
       end
      local target = net:forward(content_image_caffe):clone()
-
+	 local actualImage = net:forward(ToBeCorrected_image_caffe):clone()
+	 
       if name == content_layers[next_content_idx] then
       	print ("happyness!!!!!!!!!!!!!!!!!" .. name .. next_content_idx)
         print("Setting up content layer", i, ":", layer.name)
@@ -350,6 +358,8 @@ local function main(params)
   end
 end
   
+function correlate(preimage,postimage,actualImage)
+
 
 function build_filename(output_image, iteration)
   local ext = paths.extname(output_image)
@@ -357,6 +367,7 @@ function build_filename(output_image, iteration)
   local directory = paths.dirname(output_image)
   return string.format('%s/%s_%d.%s',directory, basename, iteration, ext)
 end
+
 
 
 -- Preprocess an image before passing it to a Caffe model.
