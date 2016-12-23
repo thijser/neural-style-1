@@ -119,17 +119,17 @@ local function main(params)
     net:add(tv_mod)
   end
 
-  local alltargets  = {}
+ 
 
 
   for i = 1, #cnn do
---  print(next_content_idx)
---  print(#pre_image)
---  print(next_style_idx)
---  print(#post_image)
+  print(next_content_idx)
+  print(#pre_image)
+  print(next_style_idx)
+  print(#post_image)
   --temp fix to change pre-image into post image may cause trouble if #pre_image!=#post_image 
       if next_content_idx <= 3 or next_style_idx <= 3 then
-  	    --print("now setting up layer: ".. i)
+  	    print("now setting up layer: ".. i)
         local layer = cnn:get(i)
       local name = layer.name
       local layer_type = torch.type(layer)
@@ -153,12 +153,9 @@ local function main(params)
         net:add(layer)
       end
       
-      
-      --if name == pre_image[next_content_idx] then
+      if name == pre_image[next_content_idx] then
         print("Setting up content layer", i, ":", layer.name)
-        local target = net:forward(pre_image):clone()
-        alltargets.push(target);
-
+        local target = net:forward(content_image_caffe):clone()
         local norm = params.normalize_gradients
         local loss_module = nn.StyleLoss(params.content_weight, target, norm):float()
         if params.gpu >= 0 then
@@ -171,7 +168,7 @@ local function main(params)
         net:add(loss_module)
         table.insert(content_losses, loss_module)
         next_content_idx = next_content_idx + 1
-      --end  
+      end  
  
       if name == post_image[next_style_idx] then
        print("Setting up style layer  ", i, ":", layer.name)
@@ -193,7 +190,6 @@ local function main(params)
            target = target_i
          else
            target:add(target_i)
-           alltargets.push(target);
          end
        end
        local norm = params.normalize_gradients
@@ -212,7 +208,7 @@ local function main(params)
           print(i.. "here")
     end
     end
-	print(alltargets)
+	print(net)
   
 
    --We don't need the base CNN anymore, so clean it up to save memory.
