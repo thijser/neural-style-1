@@ -219,6 +219,9 @@ local function main(params)
 
 		  print("calculating target")
 	      target=correlate(target,targetpost,actualImage)
+	      targetpost=nil
+	      actualImage=nil
+	      
           print("now optimizing")
         local norm = params.normalize_gradients
         local loss_module = nn.ContentLoss(params.style_weight, target, norm):float()
