@@ -174,6 +174,7 @@ local function main(params)
         net:add(layer)
       end
      local target = net:forward(content_image_caffe):clone()
+     print (target)
       if name == content_layers[next_content_idx] then
       	print ("happyness!!!!!!!!!!!!!!!!!" .. name .. next_content_idx)
         print("Setting up content layer", i, ":", layer.name)
