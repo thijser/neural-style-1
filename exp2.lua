@@ -180,8 +180,10 @@ local function main(params)
       else
         net:add(layer)
       end
+     print(style_images_caffe[0])
+     local targetpost = net:forward(style_images_caffe[0]):clone()
      local target = net:forward(content_image_caffe):clone()
-	 local targetpost = net:forward(style_images_caffe[0]):clone()
+
 	 
       if name == content_layers[next_content_idx] then
       	print ("happyness!!!!!!!!!!!!!!!!!" .. name .. next_content_idx)
