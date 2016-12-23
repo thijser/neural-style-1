@@ -155,7 +155,7 @@ local function main(params)
       
               print(name)
               print(next_content_idx)
-              print(pre_image)
+
       if name == pre_image[next_content_idx] then
         print("Setting up content layer", i, ":", layer.name)
         local target = net:forward(content_image_caffe):clone()
