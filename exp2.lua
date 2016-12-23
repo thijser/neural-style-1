@@ -361,7 +361,7 @@ local function main(params)
 end
   
 function correlate(preimage,postimage,actualImage)
-	return postimage/preimage*actualImage
+	return postimage/preimage
 end
 
 
