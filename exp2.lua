@@ -214,10 +214,10 @@ local function main(params)
           end
         end
 
-
+		print("calculating actual image")
           local actualImage = net:forward(ToBeCorrected_image_caffe):clone()
 
-		  
+		  print("calculating target")
 	      target=correlate(target,targetpost,actualImage)
           
         local norm = params.normalize_gradients
