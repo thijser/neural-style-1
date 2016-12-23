@@ -181,7 +181,7 @@ local function main(params)
         net:add(layer)
       end
      local target = net:forward(content_image_caffe):clone()
-	 local actualImage = net:forward(ToBeCorrected_image_caffe):clone()
+	 local targetpost = net:forward(style_images_caffe[0]):clone()
 	 
       if name == content_layers[next_content_idx] then
       	print ("happyness!!!!!!!!!!!!!!!!!" .. name .. next_content_idx)
@@ -212,10 +212,10 @@ local function main(params)
         end
 
         for i = 1, #style_images_caffe do
-          local target_features = net:forward(style_images_caffe[i]):clone()
+          local actualImage = net:forward(ToBeCorrected_image_caffe):clone()
 
 		  
-	      target=correlate(target,target_features,actualImage)
+	      target=correlate(target,targetpost,actualImage)
           
         end
         local norm = params.normalize_gradients
