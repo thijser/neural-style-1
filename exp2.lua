@@ -12,7 +12,7 @@ local cmd = torch.CmdLine()
 cmd:option('-style_image', 'examples/inputs/seated-nude.jpg',
            'Style target image')
 cmd:option('-ToBeCorrected', 'examples/inputs/seated-nude.jpg',
-           'Style target image')           
+           'ToBeCorrected image')           
 cmd:option('-style_blend_weights', 'nil')
 cmd:option('-content_image', 'examples/inputs/tubingen.jpg',
            'Content target image')
@@ -215,7 +215,7 @@ local function main(params)
           local target_features = net:forward(style_images_caffe[i]):clone()
 
 		  
-	      target=target-target_features
+	      target=correlate(target,target_features,actualImage)
           
         end
         local norm = params.normalize_gradients
@@ -359,6 +359,8 @@ local function main(params)
 end
   
 function correlate(preimage,postimage,actualImage)
+	return postimage/preimage*actualImage
+end
 
 
 function build_filename(output_image, iteration)
