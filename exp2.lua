@@ -181,13 +181,13 @@ local function main(params)
 
         local norm = params.normalize_gradients
         --local loss_module = nn.ContentLoss(params.content_weight, target, norm):float()
-        if params.gpu >= 0 then
-          if params.backend ~= 'clnn' then
-            loss_module:cuda()
-          else
-            loss_module:cl()
-          end
-        end
+    --    if params.gpu >= 0 then
+      --    if params.backend ~= 'clnn' then
+      --      loss_module:cuda()
+     --     else
+     --      loss_module:cl()
+      --    end
+      --  end
         net:add(loss_module)
         table.insert(content_losses, loss_module)
         next_content_idx = next_content_idx + 1
