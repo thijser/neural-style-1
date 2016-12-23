@@ -360,7 +360,7 @@ local function main(params)
 end
   
 function correlate(preimage,postimage,actualImage)
-	return postimage-preimage
+	return postimage-actualImage
 end
 
 
