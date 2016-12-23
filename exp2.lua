@@ -238,7 +238,7 @@ local function main(params)
       end
     end
   end
-
+   
   -- We don't need the base CNN anymore, so clean it up to save memory.
   cnn = nil
   for i=1,#net.modules do
@@ -249,6 +249,7 @@ local function main(params)
         module.gradBias = nil
     end
   end
+  	ToBeCorrected_image_caffe=nil
   collectgarbage()
   print("let's find the image".. " memory usage is now " ..collectgarbage("count")*1024 .. "bytes")
   -- Initialize the image
@@ -345,6 +346,8 @@ local function main(params)
     end
     maybe_print(num_calls, loss)
     maybe_save(num_calls)
+	
+
 
     collectgarbage()
     -- optim.lbfgs expects a vector for gradients
@@ -365,7 +368,9 @@ end
   
 function correlate(preimage,postimage,actualImage)
 
-	return torch.cmul(torch.cdiv(postimage,preimage),actualImage)
+	target= torch.cmul(torch.cdiv(postimage,preimage),actualImage)
+	nan_mask = target:ne(target)
+	target(nan_mask)=1
 end
 
 
