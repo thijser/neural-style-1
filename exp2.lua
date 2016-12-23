@@ -370,7 +370,7 @@ function correlate(preimage,postimage,actualImage)
 
 	target= torch.cmul(torch.cdiv(postimage,preimage),actualImage)
 	nan_mask = target:ne(target)
-	target(nan_mask) = 1
+	target[nan_mask] = 1
 end
 
 
