@@ -382,10 +382,10 @@ function correlate(preimage,postimage,actualImage)
 
 --linear regression see https://github.com/torch/demos/blob/master/linear-regression/example-linear-regression.lua
 
-print(preimage)
-
+for lvl = 1,64 do 
+	data = preimage[i]
 	local mod = nn.Sequential()
-	local ninputs = preimage.size(1); 
+	local ninputs = preimage.data(1); 
 	local noutputs = 1
 	local criterion = nn.MSECriterion()
     mod:add(nn.Linear(ninputs, noutputs))
