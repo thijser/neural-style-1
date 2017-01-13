@@ -447,7 +447,7 @@ for i = 1,1e4 do
    end
 
 end 
-  
+  end
     
 	return current_loss
 end
