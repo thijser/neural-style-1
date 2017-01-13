@@ -381,6 +381,9 @@ function correlate(preimage,postimage,actualImage)
 --	  collectgarbage()
 
 --linear regression see https://github.com/torch/demos/blob/master/linear-regression/example-linear-regression.lua
+
+print(preimage)
+
 	local mod = nn.Sequential()
 	local ninputs = preimage.size(1); 
 	local noutputs = 1
