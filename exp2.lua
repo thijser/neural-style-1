@@ -370,7 +370,7 @@ local function main(params)
   end
 end
   
-function correlate(preimage,postimage,actualImage)
+function correlate(preimaget,postimaget,actualImaget)
 	
 --	target = preimage+postimage+actualImage
 --	target= torch.cmul(torch.cdiv(postimage,preimage),actualImage)
@@ -383,10 +383,10 @@ function correlate(preimage,postimage,actualImage)
 --linear regression see https://github.com/torch/demos/blob/master/linear-regression/example-linear-regression.lua
 
 for lvl = 1,64 do 
-	data = preimage[i]
+	data = preimaget[i]
 	local mod = nn.Sequential()
-	local ninputs = preimage.data(1); 
-	local noutputs = 1
+	local ninputs = data.size(1); 
+	local noutputs = data.size(1)
 	local criterion = nn.MSECriterion()
     mod:add(nn.Linear(ninputs, noutputs))
     local x, dl_dx = model:getParameters()
@@ -426,7 +426,7 @@ for i = 1,1e4 do
    current_loss = 0
 
    -- an epoch is a full loop over our training data
-   for i = 1,(#data)[1] do
+   for i = 1,(#data)[1] do 
 
       -- optim contains several optimization algorithms. 
       -- All of these algorithms assume the same parameters:
@@ -448,6 +448,7 @@ for i = 1,1e4 do
 
 end 
   end
+    
     
 	return current_loss
 end
