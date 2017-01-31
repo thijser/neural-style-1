@@ -385,7 +385,7 @@ print("<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<")
 
 for l=1 ,  64 do 
 	for n=1 ,512  do
-		print(preimaget[l][i])
+		print(preimaget[l])
       actualImaget[l][i]=linairPredict(preimaget[l][i],postimaget[l][i],actualImaget[l][i])
 	end
 end
