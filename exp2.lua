@@ -381,8 +381,8 @@ function correlate(preimaget,postimaget,actualImaget)
 --	  collectgarbage()
 
 --linear regression see https://github.com/torch/demos/blob/master/linear-regression/example-linear-regression.lua
-for l=1 , #preimaget 
-	for n=1 , #preimaget[l]
+for l=1 , #preimaget do 
+	for n=1 , #preimaget[l] do
       actualImaget[l][i]=predict(preimaget[l][i],postimaget[l][i],actualImaget[l][i])
 	end
 end
