@@ -388,6 +388,7 @@ for l=1 , #preimaget do
 end
 return actualImaget
 
+end
 function linairPredict(trainingvalues,labels,inputvaluse)
 	
 
