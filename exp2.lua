@@ -381,78 +381,17 @@ function correlate(preimaget,postimaget,actualImaget)
 --	  collectgarbage()
 
 --linear regression see https://github.com/torch/demos/blob/master/linear-regression/example-linear-regression.lua
-
-for lvl = 1,64 do 
-	data = preimaget[i]
-	local mod = nn.Sequential()
-	local ninputs = data.size(1); 
-	local noutputs = data.size(1)
-	local criterion = nn.MSECriterion()
-    mod:add(nn.Linear(ninputs, noutputs))
-    local x, dl_dx = model:getParameters()
-    
-    feval = function(x_new)
-   -- set x to x_new, if differnt
-   -- (in this simple example, x_new will typically always point to x,
-   -- so the copy is really useless)
-   if x ~= x_new then
-      x:copy(x_new)
-   end
-
-   -- select a new training sample
-   _nidx_ = (_nidx_ or 0) + 1
-   if _nidx_ > (#data)[1] then _nidx_ = 1 end
-
-   local sample = data[_nidx_]
-   local target = sample[{ {1} }]      -- this funny looking syntax allows
-   local inputs = sample[{ {2,3} }]    -- slicing of arrays.
-
-   -- reset gradients (gradients are always accumulated, to accommodate 
-   -- batch methods)
-   dl_dx:zero()
-
-   -- evaluate the loss function and its derivative wrt x, for that sample
-   local loss_x = criterion:forward(model:forward(inputs), target)
-   model:backward(inputs, criterion:backward(model.output, target))
-
-   -- return loss(x) and dloss/dx
-   return loss_x, dl_dx
+for l=1 , #preimaget 
+	for n=1 , #preimaget[l]
+      actualImaget[l][i]=predict(preimaget[l][i],postimaget[l][i],actualImaget[l][i])
+	end
 end
+return actualImaget
 
+function linairPredict(trainingvalues,labels,inputvaluse)
+	
 
-for i = 1,1e4 do
-
-   -- this variable is used to estimate the average loss
-   current_loss = 0
-
-   -- an epoch is a full loop over our training data
-   for i = 1,(#data)[1] do 
-
-      -- optim contains several optimization algorithms. 
-      -- All of these algorithms assume the same parameters:
-      --   + a closure that computes the loss, and its gradient wrt to x, 
-      --     given a point x
-      --   + a point x
-      --   + some parameters, which are algorithm-specific
-      
-      _,fs = optim.sgd(feval,x,sgd_params)
-
-      -- Functions in optim all return two things:
-      --   + the new x, found by the optimization method (here SGD)
-      --   + the value of the loss functions at all points that were used by
-      --     the algorithm. SGD only estimates the function once, so
-      --     that list just contains one value.
-
-      current_loss = current_loss + fs[1]
-   end
-
-end 
-  end
-    
-    
-	return current_loss
 end
-
 
 function build_filename(output_image, iteration)
   local ext = paths.extname(output_image)
