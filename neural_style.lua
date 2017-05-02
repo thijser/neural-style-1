@@ -14,22 +14,23 @@ cmd:option('-style_image', 'examples/inputs/seated-nude.jpg',
 cmd:option('-style_blend_weights', 'nil')
 cmd:option('-content_image', 'examples/inputs/tubingen.jpg',
            'Content target image')
-cmd:option('-image_size', 512, 'Maximum height / width of generated image')
+cmd:option('-image_size', 768, 'Maximum height / width of generated image')
 cmd:option('-gpu', 0, 'Zero-indexed ID of the GPU to use; for CPU mode set -gpu = -1')
 
 -- Optimization options
 cmd:option('-content_weight', 5e0)
-cmd:option('-style_weight', 1e2)
+
+cmd:option('-style_weight', 2e2)
 cmd:option('-tv_weight', 1e-3)
 cmd:option('-num_iterations', 5000)
 cmd:option('-normalize_gradients', false)
-cmd:option('-init', 'image', 'random|image')
+cmd:option('-init', 'random', 'random|image')
 cmd:option('-optimizer', 'lbfgs', 'lbfgs|adam')
 cmd:option('-learning_rate', 1e1)
 
 -- Output options
 cmd:option('-print_iter', 50)
-cmd:option('-save_iter', 100)
+cmd:option('-save_iter', 50)
 cmd:option('-output_image', 'out.png')
 
 -- Other options
@@ -46,6 +47,9 @@ cmd:option('-content_layers', 'relu4_2', 'layers for content')
 cmd:option('-style_layers', 'relu1_1,relu2_1,relu3_1,relu4_1,relu5_1', 'layers for style')
 
 local function main(params)
+    collectgarbage()
+print(collectgarbage("count")*1024)
+
   if params.gpu >= 0 then
     if params.backend ~= 'clnn' then
       require 'cutorch'
@@ -78,8 +82,8 @@ local function main(params)
       cnn:cl()
     end
   end
-  
-  local content_image = image.load(params.content_image, 3)
+      collectgarbage()
+  content_image = image.load(params.content_image, 3)
   content_image = image.scale(content_image, params.image_size, 'bilinear')
   local content_image_caffe = preprocess(content_image):float()
   
@@ -133,7 +137,7 @@ local function main(params)
   
   local content_layers = params.content_layers:split(",")
   local style_layers = params.style_layers:split(",")
-
+    collectgarbage()
   -- Set up the network, inserting style and content loss modules
   local content_losses, style_losses = {}, {}
   local next_content_idx, next_style_idx = 1, 1
@@ -176,7 +180,7 @@ local function main(params)
       if name == content_layers[next_content_idx] then
       	print ("happyness!!!!!!!!!!!!!!!!!" .. name .. next_content_idx)
         print("Setting up content layer", i, ":", layer.name)
-        local target = net:forward(content_image_caffe):clone()
+        local target = cnn:forward(content_image_caffe):clone()
         local norm = params.normalize_gradients
         local loss_module = nn.ContentLoss(params.content_weight, target, norm):float()
         if params.gpu >= 0 then
@@ -190,9 +194,11 @@ local function main(params)
         table.insert(content_losses, loss_module)
         next_content_idx = next_content_idx + 1
       end
+
       if name == style_layers[next_style_idx] then
         print("Setting up style layer  ", i, ":", layer.name)
         local gram = GramMatrix():float()
+
         if params.gpu >= 0 then
           if params.backend ~= 'clnn' then
             gram = gram:cuda()
@@ -212,6 +218,7 @@ local function main(params)
             target:add(target_i)
           end
         end
+	
         local norm = params.normalize_gradients
         local loss_module = nn.StyleLoss(params.style_weight, target, norm):float()
         if params.gpu >= 0 then
@@ -230,6 +237,9 @@ local function main(params)
 
   -- We don't need the base CNN anymore, so clean it up to save memory.
   cnn = nil
+  gram = nil
+  target=nil
+
   for i=1,#net.modules do
     local module = net.modules[i]
     if torch.type(module) == 'nn.SpatialConvolutionMM' then
@@ -301,7 +311,8 @@ local function main(params)
     if should_save then
       local disp = deprocess(img:double())
       disp = image.minmax{tensor=disp, min=0, max=1}
-      local filename = build_filename(params.output_image, t)
+      local filename = build_filename("post",params.output_image, t)
+      local prefilename = build_filename("prepost",params.output_image, t)
       if t == params.num_iterations then
         filename = params.output_image
       end
@@ -310,7 +321,8 @@ local function main(params)
       if params.original_colors == 1 then
         disp = original_colors(content_image, disp)
       end
-
+	image.save(prefilename,disp)
+--	disp=postProccess(disp,content_image)
       image.save(filename, disp)
     end
   end
@@ -353,11 +365,13 @@ local function main(params)
 end
   
 
-function build_filename(output_image, iteration)
+function build_filename(anote,output_image, iteration)
   local ext = paths.extname(output_image)
   local basename = paths.basename(output_image, ext)
   local directory = paths.dirname(output_image)
-  return string.format('%s/%s_%d.%s',directory, basename, iteration, ext)
+
+
+  return string.format('%s/out/%s_%s_%d.%s',directory, basename,anote, iteration, ext)
 end
 
 
@@ -455,6 +469,7 @@ function StyleLoss:__init(strength, target, normalize)
   self.gram = GramMatrix()
   self.G = nil
   self.crit = nn.MSECriterion()
+    collectgarbage()
 end
 
 function StyleLoss:updateOutput(input)
@@ -512,5 +527,205 @@ function TVLoss:updateGradInput(input, gradOutput)
 end
 
 
+function postProccess(image,origimage)
+	avgerageInitDarkness=getAverageChannel(image,1)
+	
+	return  TransferBlackViaHSV(image,origimage)
+end
+
+function getAverageChannel(image,channel)
+	total =0
+	image_width=image:size()[2]
+	image_height=image:size()[3]
+     	
+	for i=1,image_width,1 do
+		for j=1,image_height,1 do
+			total=total+image[channel][i][j]
+		end
+	end
+
+	return total/(image_width*image_height)
+end
+
+function transferAverageChannel (image,channel,ratio)
+	image_width=image:size()[2]
+	image_height=image:size()[3]
+	for i=1,image_width,1 do
+		for j=1,image_height,1 do
+
+			image[channel][i][j]=image[channel][i][j]*ratio
+		end
+	end
+	return image
+end
+
+function TransferBlackViaYIQ(image,bwimage)
+	image_width=image:size()[2]
+	image_height=image:size()[3]
+
+	for i=1,image_width,1 do
+		for j=1,image_height,1 do
+			imYIQ=RGBToYIQ(image[1][i][j],image[2][i][j],image[3][i][j])	
+			bwYIQ=RGBToYIQ(bwimage[1][i][j],bwimage[2][i][j],bwimage[3][i][j])
+			
+			Y=bwYIQ[1]
+			I=imYIQ[2]
+			Q=imYIQ[3]
+			RGB=YIQtoRGB(Y,I,Q)
+			image[1][i][j]=RGB[1]
+			image[2][i][j]=RGB[2]
+			image[3][i][j]=RGB[3]
+		end
+	end	
+
+return image;
+end
+
+function campTo1or0 (Tensor3d)
+
+	tensor_width=Tensor3d:size()[2]
+	tensor_height=Tensor3d:size()[3]
+	tensor_depth=Tensor3d:size()[1]
+	for i=1,tensor_width,1 do
+		for j=1,tensor_height,1 do
+			for k=1,tensor_depth,1 do 
+				if(Tensor3d[k][i][j])>1 then
+
+					Tensor3d[k][i][j]=1
+			
+				end	
+				if(Tensor3d[k][i][j]<0.0) then
+					Tensor3d[k][i][j]=0.0			
+				end
+			end
+		end
+	end
+	return Tensor3d
+end
+function TransferBlackViaHSV(image,bwimage)
+	image=campTo1or0(image)
+	bwimage=campTo1or0(bwimage)
+	image_width=image:size()[2]
+	image_height=image:size()[3]
+
+	for i=1,image_width,1 do
+		for j=1,image_height,1 do
+			imHSV=RGBToHSV(image[1][i][j],image[2][i][j],image[3][i][j])	
+			bwHSV=RGBToHSV(bwimage[1][i][j],bwimage[2][i][j],bwimage[3][i][j])
+
+			H=bwHSV[1]
+			S=imHSV[2]
+			V=imHSV[3]
+
+			RGB=HSVToRGB(H,S,V)
+			
+			image[1][i][j]=RGB[1]
+			image[2][i][j]=RGB[2]
+			image[3][i][j]=RGB[3]
+			for k=1,3,1 do 
+				if(image[k][i][j])>1 then
+
+					image[k][i][j]=1
+			
+				end	
+				if(image[k][i][j]<0.01) then
+					image[k][i][j]=0.0			
+				end
+			end
+		end
+	end	
+
+	print("maximum is now "..torch.max(image))
+	return image
+end
+
+function RGBToHSV( red, green, blue )
+	-- Returns the HSV equivalent of the given RGB-defined color https://gist.github.com/GigsD4X/8513963
+	-- (adapted from some code found around the web)
+
+	local hue, saturation, value;
+
+	local min_value = math.min( red, green, blue );
+	local max_value = math.max( red, green, blue );
+
+	value = max_value;
+
+	local value_delta = max_value - min_value;
+
+	-- If the color is not black
+	if max_value ~= 0 then
+		saturation = value_delta / max_value;
+
+	-- If the color is purely black
+	else
+		saturation = 0;
+		hue = 0;
+		return {hue, saturation, value};
+	end;
+
+	if red == max_value then
+		hue = ( green - blue ) / value_delta;
+	elseif green == max_value then
+		hue = 2 + ( blue - red ) / value_delta;
+	else
+		hue = 4 + ( red - green ) / value_delta;
+	end;
+
+	hue = hue * 60;
+	hue=hue%360;
+	if value ~= value then
+	 value=0
+	end if hue ~= hue then
+ 	hue=0
+	end if saturation ~= saturation then
+ 	saturation=0
+	end
+	return {value,hue, saturation};
+end
+function HSVToRGB(value, hue, saturation )
+	-- Returns the RGB equivalent of the given HSV-defined color https://gist.github.com/GigsD4X/8513963
+	-- (adapted from some code found around the web)
+
+
+	-- Get the hue sector
+	local hue_sector = math.floor( hue / 60 );
+	local hue_sector_offset = ( hue / 60 ) - hue_sector;
+
+	local p = value * ( 1 - saturation );
+	local q = value * ( 1 - saturation * hue_sector_offset );
+	local t = value * ( 1 - saturation * ( 1 - hue_sector_offset ) );
+
+	if hue_sector == 0 then
+		return {value, t, p};
+	elseif hue_sector == 1 then
+		return {q, value, p};
+	elseif hue_sector == 2 then
+		return {p, value, t};
+	elseif hue_sector == 3 then
+		return {p, q, value};
+	elseif hue_sector == 4 then
+		return {t, p, value};
+	elseif hue_sector == 5 then
+		return {value, p, q};
+	end;
+end;
+
+
+function RGBToYIQ(R,G,B)
+--    Y=(0.299*R)+(0.587*G)+(0.114*B)
+--    I=(0.596*R)-(0.274*G)-(0.322*B)
+--    Q=(0.211*R)-(0.523*G)-(0.312*B)
+
+	Y=0.299*R+0.596*G+0.211*B
+	I=0.587*R-0.274*G-0.322*B
+	Q=0.114*R-0.322*G+0.312*B
+    return {Y,I,Q}
+end
+function YIQtoRGB (Y,I,Q)
+    R= (1*Y)+(0.956*I)+(0.621*Q)
+    G= (1*Y)-(0.272*I)-(0.647*Q)
+    B= (1*Y)-(1.106*I)+(1.703*Q)
+    return {R,G,B}
+end
 local params = cmd:parse(arg)
 main(params)

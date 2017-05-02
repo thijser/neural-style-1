@@ -19,7 +19,9 @@ cmd:option('-gpu', 0, 'Zero-indexed ID of the GPU to use; for CPU mode set -gpu 
 cmd:option('-edit_image', 'examples/inputs/seated-nude.jpg',
            'Style target image')
 -- Optimization options
-cmd:option('-content_weight', 5e0)
+--cmd:option('-content_weight', 5e0)
+cmd:option('-content_weight', 1e-9)
+
 cmd:option('-style_weight', 1e2)
 cmd:option('-tv_weight', 1e-3)
 cmd:option('-num_iterations', 1000)

@@ -1,0 +1,11 @@
+--- /usr/lib/python2.7/site-packages/google/modules/images.py	2015-12-23 18:11:47.000000000 +0100
++++ images.new.py	2015-12-25 14:44:16.588923000 +0100
+@@ -286,7 +286,7 @@
+     temp_name = link.rsplit('/', 1)[1]
+     image_format = _parse_image_format(link)
+ 
+-    if image_format and temp_name.rsplit(".", 1)[1] != image_format:
++    if image_format and len(temp_name.rsplit(".", 1)) > 1 and temp_name.rsplit(".", 1)[1] != image_format:
+         file_name = temp_name.rsplit(".", 1)[0] + "." + image_format
+ 
+     else:
