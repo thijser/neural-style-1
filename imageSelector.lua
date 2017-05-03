@@ -3,6 +3,7 @@ require 'nn'
 require 'image'
 require 'optim'
 require('image')
+require("neural_style.lua")
 require 'loadcaffe'
 local cmd = torch.CmdLine()
 cmd:option('-gpu', 0, 'Zero-indexed ID of the GPU to use; for CPU mode set -gpu = -1')
@@ -141,7 +142,7 @@ end
 
  function neuralEval(params, selectedImages)
     collectgarbage()
-	if(true) then
+	if(false) then
 		return #selectedImages*-6000
 	end
 
@@ -240,25 +241,6 @@ end
 
 
 
-function preprocess(img)
-  local mean_pixel = torch.DoubleTensor({103.939, 116.779, 123.68})
-  local perm = torch.LongTensor{3, 2, 1}
-  img = img:index(1, perm):mul(256.0)
-  mean_pixel = mean_pixel:view(3, 1, 1):expandAs(img)
-  img:add(-1, mean_pixel)
-  return img
-end
-
-
--- Undo the above preprocessing.
-function deprocess(img)
-  local mean_pixel = torch.DoubleTensor({103.939, 116.779, 123.68})
-  mean_pixel = mean_pixel:view(3, 1, 1):expandAs(img)
-  img = img + mean_pixel
-  local perm = torch.LongTensor{3, 2, 1}
-  img = img:index(1, perm):div(256.0)
-  return img
-end
 
 
 function RGBToHSV( red, green, blue )
