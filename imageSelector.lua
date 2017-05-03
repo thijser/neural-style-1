@@ -16,7 +16,7 @@ cmd:option('-avaible_images', 'tank.jpg,tankbw.jpg,hawaii.jpg,aeaecb2791801e2bfe
 cmd:option('image_count',3)
 cmd:option('-proto_file', 'models/VGG_ILSVRC_19_layers-deploy.prototxt')
 cmd:option('-model_file', 'models/VGG_ILSVRC_19_layers.caffemodel')
-cmd:option('-selectorGenerations', 100)
+cmd:option('-selectorGenerations', 20)
 cmd:option('-selectorWidth', 5)
 cmd:option('-selectorDepth', 6)
 
@@ -61,7 +61,7 @@ end
 		local noError,res=pcall(evaluate,params,v)
 
 	if noError then 
-		values[v]=res
+		values[#values+1]= {v, res}
 	else
 
     values[v] = 9999999999999999999999999999999999999999999999999999999999
@@ -70,9 +70,52 @@ end
 function compare(a,b)
   return a[2] < b[2]
 end
-
+	ret={}
   table.sort(values,compare)
-  print(values)
+	for  i=1,count do
+		ret[i]=values[i][1]
+	end
+	return ret
+end
+
+
+function contains(array,value)
+
+	for i=1,#array do
+		if(array[i]==value) then
+			return true
+		end
+	end
+	return false
+end
+
+function addRange(array1,array2)
+	for i=1,#array2 do
+		array1[#array1+1]=array2[i]
+	end
+end
+
+function mutate(params,selected,avImages)
+	for x = 1,	params.selectorWidth do
+		addRange(selected,mutateSingle(params.selectorDepth,selected[x],avImages))	
+	end
+	return selected
+end
+
+function mutateSingle(count,orig,avImages)
+
+	ret={}
+	for i=1,count do
+		rnd=math.random(#avImages)
+
+		while(contains(orig,avImages[rnd])) do
+				rnd=math.random(#avImages)
+
+		end
+		ret[i]=copy(orig)
+		orig[math.random(#orig)]=avImages[rnd]
+	end	
+	return ret
 end
 
  function evolve(params,avImages)
@@ -81,13 +124,17 @@ end
 	for i=1,params.selectorDepth*params.selectorDepth do
 		selected[i]=randomSelectImages(avImages,params.image_count)
 	end
-SelectTop(params,selected,5)
 	
+	for i=1,params.selectorGenerations do
+		selected=SelectTop(params,selected,params.selectorWidth)
+		selected=mutate(params,selected,avImages)
+	end
+	return SelectTop(params,selected,1)
 end
  function main(params)
 	local avImages = params.avaible_images:split(',')
-	evolve(params,avImages)
-	
+	local selectedImages=evolve(params,avImages)
+	print(selectedImages)
 	
 
 end
@@ -95,7 +142,7 @@ end
  function neuralEval(params, selectedImages)
     collectgarbage()
 	if(true) then
-		return 1
+		return #selectedImages*-6000
 	end
 
 
