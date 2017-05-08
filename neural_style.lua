@@ -46,7 +46,7 @@ cmd:option('-seed', -1)
 cmd:option('-content_layers', 'relu4_2', 'layers for content')
 cmd:option('-style_layers', 'relu1_1,relu2_1,relu3_1,relu4_1,relu5_1', 'layers for style')
 
-local function main(params)
+function main(params)
     collectgarbage()
 print(collectgarbage("count")*1024)
 
@@ -137,7 +137,7 @@ print(collectgarbage("count")*1024)
   
   local content_layers = params.content_layers:split(",")
   local style_layers = params.style_layers:split(",")
-    collectgarbage()
+
   -- Set up the network, inserting style and content loss modules
   local content_losses, style_losses = {}, {}
   local next_content_idx, next_style_idx = 1, 1
@@ -178,9 +178,8 @@ print(collectgarbage("count")*1024)
         net:add(layer)
       end
       if name == content_layers[next_content_idx] then
-      	print ("happyness!!!!!!!!!!!!!!!!!" .. name .. next_content_idx)
         print("Setting up content layer", i, ":", layer.name)
-        local target = cnn:forward(content_image_caffe):clone()
+        local target = net:forward(content_image_caffe):clone()
         local norm = params.normalize_gradients
         local loss_module = nn.ContentLoss(params.content_weight, target, norm):float()
         if params.gpu >= 0 then
@@ -194,11 +193,9 @@ print(collectgarbage("count")*1024)
         table.insert(content_losses, loss_module)
         next_content_idx = next_content_idx + 1
       end
-
       if name == style_layers[next_style_idx] then
         print("Setting up style layer  ", i, ":", layer.name)
         local gram = GramMatrix():float()
-
         if params.gpu >= 0 then
           if params.backend ~= 'clnn' then
             gram = gram:cuda()
@@ -218,7 +215,6 @@ print(collectgarbage("count")*1024)
             target:add(target_i)
           end
         end
-	
         local norm = params.normalize_gradients
         local loss_module = nn.StyleLoss(params.style_weight, target, norm):float()
         if params.gpu >= 0 then
@@ -233,7 +229,7 @@ print(collectgarbage("count")*1024)
         next_style_idx = next_style_idx + 1
       end
     end
-  end
+end
 
   -- We don't need the base CNN anymore, so clean it up to save memory.
   cnn = nil
@@ -322,7 +318,7 @@ print(collectgarbage("count")*1024)
         disp = original_colors(content_image, disp)
       end
 	image.save(prefilename,disp)
---	disp=postProccess(disp,content_image)
+	disp=postProccess(disp,content_image)
       image.save(filename, disp)
     end
   end
@@ -727,5 +723,5 @@ function YIQtoRGB (Y,I,Q)
     B= (1*Y)-(1.106*I)+(1.703*Q)
     return {R,G,B}
 end
-local params = cmd:parse(arg)
-main(params)
+--local params = cmd:parse(arg)
+--main(params)

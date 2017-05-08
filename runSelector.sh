@@ -1,3 +1,6 @@
+echo "killing all other torch instances"
+killall -9  /home/thijser/torch/install/bin/luajit
+
 cd t 
 
 if [ "$2" -eq "0" ]; then 

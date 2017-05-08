@@ -12,14 +12,15 @@ cmd:option('-cudnn_autotune', false)
 cmd:option('-image_size', 64, 'Maximum height / width of generated image')
 
 
-cmd:option('-target_image', 'tank.jpg')
-cmd:option('-avaible_images', 'tank.jpg,tankbw.jpg,hawaii.jpg,aeaecb2791801e2bfeb37f281599a885.jpg,tt.png,tt2.jpg')
-cmd:option('image_count',3)
+cmd:option('-target_image', 'in.jpg')
+cmd:option('-avaible_images', 'in.jpg,tankbw.jpg,hawaii.jpg,aeaecb2791801e2bfeb37f281599a885.jpg,tt.png,tt2.jpg')
+cmd:option('image_count',2)
 cmd:option('-proto_file', 'models/VGG_ILSVRC_19_layers-deploy.prototxt')
 cmd:option('-model_file', 'models/VGG_ILSVRC_19_layers.caffemodel')
-cmd:option('-selectorGenerations', 20)
+cmd:option('-selectorGenerations', 30)
 cmd:option('-selectorWidth', 5)
 cmd:option('-selectorDepth', 6)
+cmd:option('neural_Content_eval_Layer' ,'conv5_4') 
 
 
 
@@ -50,17 +51,29 @@ end
 end
 
 
+cache={}
  function evaluate(params,selectedImages)
+
+if(cache[selectedImages~=nil]) then
+	return cache[selectedImages]
+end
+if(#selectedImages~=params.image_count) then
+	return 999999999999999999999999999999999999999999999999999999999999999
+	end
+
 	coleval=evalHueImages(params,selectedImages) 
     neuroval=neuralEval(params,selectedImages)
-	return coleval+neuroval
+	evalValue=coleval+neuroval
+	cache[selectedImages]=evalValue
+	return evalValue
+	
 end
 
  function SelectTop(params,images,count)
 	local values={}  
 	for k,v in pairs(images) do
 		local noError,res=pcall(evaluate,params,v)
-
+		--res=evaluate(params,v) noError=true
 	if noError then 
 		values[#values+1]= {v, res}
 	else
@@ -73,9 +86,12 @@ function compare(a,b)
 end
 	ret={}
   table.sort(values,compare)
+
 	for  i=1,count do
 		ret[i]=values[i][1]
 	end
+
+	print(values[1])
 	return ret
 end
 
@@ -140,13 +156,14 @@ end
 
 end
 
- function neuralEval(params, selectedImages)
-    collectgarbage()
-	if(false) then
-		return #selectedImages*-6000
+
+
+local cnn = nil
+function buildSelectorNetworkOrGet(params)
+
+	if cnn~=nil then
+		return cnn
 	end
-
-
 	  if params.gpu >= 0 then
     if params.backend ~= 'clnn' then
       require 'cutorch'
@@ -172,7 +189,7 @@ end
 
   local loadcaffe_backend = params.backend
   if params.backend == 'clnn' then loadcaffe_backend = 'nn' end
-  local cnn = loadcaffe.load(params.proto_file, params.model_file, loadcaffe_backend):float()
+  cnn = loadcaffe.load(params.proto_file, params.model_file, loadcaffe_backend):float()
   if params.gpu >= 0 then
     if params.backend ~= 'clnn' then
       cnn:cuda()
@@ -180,7 +197,12 @@ end
       cnn:cl()
     end
   end
- 
+  return cnn
+end
+
+ function neuralEval(params, selectedImages)
+    collectgarbage()
+	cnn=buildSelectorNetworkOrGet(params)
   targetImage_caffe = image.load(params.target_image, 3)
   targetImage_caffe = image.scale(targetImage_caffe, 224,224, 'bilinear')
   targetImage_caffe = preprocess(targetImage_caffe):float()
@@ -194,8 +216,75 @@ end
     end
   end
 
- netimage=cnn:forward(targetImage_caffe)
 
+	if(gram==nil) then
+     	gram = GramMatrix():float()
+	end
+	cnn:forward(targetImage_caffe)
+
+        
+
+        if params.gpu >= 0 then
+          if params.backend ~= 'clnn' then
+            gram = gram:cuda()
+          else
+            gram = gram:cl()
+          end
+        end
+
+	
+		local targetStructure=nil
+		
+	  for i = 1, #cnn do
+		layer=cnn:get(i)
+		if layer.name=='conv5_4' then
+			gram:forward(layer.output)			
+			targetStructure=gram.output:clone()
+
+		end
+	end
+
+	local contentDist=0
+	
+	for imageIndex =1, #selectedImages do
+		    collectgarbage()
+			
+  selectedImage_caffe = image.load(selectedImages[imageIndex], 3)
+  selectedImage_caffe = image.scale(selectedImage_caffe, 224,224, 'bilinear')
+  selectedImage_caffe = preprocess(selectedImage_caffe):float()
+
+  		if params.gpu >= 0 then
+  		  if params.backend ~= 'clnn' then
+    		  selectedImage_caffe = selectedImage_caffe:cuda()
+    
+   			  else
+      			 selectedImage_caffe = selectedImage_caffe:cl()
+    		end
+		  end
+			cnn:forward(selectedImage_caffe)
+			
+        if params.gpu >= 0 then
+          if params.backend ~= 'clnn' then
+            gram = gram:cuda()
+          else
+            gram = gram:cl()
+          end
+        end
+			 for i = 1, #cnn do
+		layer=cnn:get(i)
+		if layer.name=='conv5_4' then
+			gram:forward(layer.output)			
+			contentDist=contentDist+torch.sum(torch.abs(gram.output-targetStructure))
+
+
+		end
+	end
+		
+	end
+
+
+
+	return contentDist
 end
 
 function evalHueImages(params,tarImages)
