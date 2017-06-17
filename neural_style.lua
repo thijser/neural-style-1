@@ -25,12 +25,12 @@ cmd:option('-tv_weight', 1e-3)
 cmd:option('-num_iterations', 5000)
 cmd:option('-normalize_gradients', false)
 cmd:option('-init', 'random', 'random|image')
-cmd:option('-optimizer', 'lbfgs', 'lbfgs|adam')
+cmd:option('-optimizer', 'adam', 'lbfgs|adam')
 cmd:option('-learning_rate', 1e1)
 
 -- Output options
 cmd:option('-print_iter', 50)
-cmd:option('-save_iter', 50)
+cmd:option('-save_iter', 5)
 cmd:option('-output_image', 'out.png')
 
 -- Other options
@@ -154,6 +154,7 @@ print(collectgarbage("count")*1024)
     net:add(tv_mod)
   end
   for i = 1, #cnn do
+
     if next_content_idx <= #content_layers or next_style_idx <= #style_layers then
       local layer = cnn:get(i)
       local name = layer.name
@@ -265,7 +266,7 @@ end
       img = img:cl()
     end
   end
-  
+  content_imageprep= content_image--preprocess(content_image)
   -- Run it through the network once to get the proper size for the gradient
   -- All the gradients will come from the extra loss modules, so we just pass
   -- zeros into the top of the net on the backward pass.
@@ -282,6 +283,7 @@ end
   elseif params.optimizer == 'adam' then
     optim_state = {
       learningRate = params.learning_rate,
+
     }
   else
     error(string.format('Unrecognized optimizer "%s"', params.optimizer))
@@ -318,7 +320,8 @@ end
         disp = original_colors(content_image, disp)
       end
 	image.save(prefilename,disp)
-	disp=postProccess(disp,content_image)
+	disp=deprocess(TransferBlack(preprocess(disp),content_image):double())
+	
       image.save(filename, disp)
     end
   end
@@ -330,10 +333,19 @@ end
   -- and saving intermediate results.
   local num_calls = 0
   local function feval(x)
+
     num_calls = num_calls + 1
     net:forward(x)
+	loss=0
     local grad = net:updateGradInput(x, dy)
-    local loss = 0
+	if num_calls%3==-10 then
+		
+	grey=GreyGradientLAB(content_imageprep,img)
+	loss=torch.sum(torch.abs(grey))
+	grad=grey+grad 
+	end
+
+	img=TransferBlack(img,content_imageprep)
     for _, mod in ipairs(content_losses) do
       loss = loss + mod.loss
     end
@@ -356,6 +368,11 @@ end
     print('Running optimization with ADAM')
     for t = 1, params.num_iterations do
       local x, losses = optim.adam(feval, img, optim_state)
+			--img=postProccess(img,content_imageprep,params)
+			--img=TransferBlack(img,content_imageprep)
+			--optim_state.v=nil
+			--optim_state.m=nil
+
     end
   end
 end
@@ -451,7 +468,38 @@ function GramMatrix()
   return net
 end
 
+function GreyGradient (orig,img)
 
+	d=orig:double()
+	i=preprocess(img)
+
+	g=d-i
+	g=g/90
+	g=torch.sum(g,1)
+
+	g=torch.Tensor(g,g,g)
+	r=torch.zeros(3,485,768)
+	r[1]=g
+	r[2]=g
+	r[3]=g
+
+	return r:cuda()
+end
+
+
+function GreyGradientLAB (orig,img)
+	imgdepros=deprocess(img:double())
+	origdouble=orig:double()
+	imglab=image.rgb2lab(imgdepros)
+	origlab=image.rgb2lab(origdouble)
+	imglab[1]=origlab[1]
+	imgtarget=image.lab2rgb(imglab):cuda()
+
+	return imgtarget-img
+
+	
+	
+end
 -- Define an nn Module to compute style loss in-place
 local StyleLoss, parent = torch.class('nn.StyleLoss', 'nn.Module')
 
@@ -489,6 +537,24 @@ function StyleLoss:updateGradInput(input, gradOutput)
   return self.gradInput
 end
 
+local greyLoss, parent = torch.class('nn.greyLoss', 'nn.Module')
+function greyLoss:__init(strength,target)
+	parent.__init(self)
+    self.x_diff = torch.Tensor()
+    self.y_diff = torch.Tensor()
+    self.target=target
+end
+
+function greyLoss:updateOutput(input)
+  self.output = input
+  return self.output
+end
+
+
+function greyLoss:updateGradInput(input, gradOutput)
+	
+end
+
 
 local TVLoss, parent = torch.class('nn.TVLoss', 'nn.Module')
 
@@ -523,10 +589,8 @@ function TVLoss:updateGradInput(input, gradOutput)
 end
 
 
-function postProccess(image,origimage)
-	avgerageInitDarkness=getAverageChannel(image,1)
-	
-	return  TransferBlackViaHSV(image,origimage)
+function postProccess(image,origimage,params)	
+	return  TransferBlack(image,origimage,params)
 end
 
 function getAverageChannel(image,channel)
@@ -543,7 +607,7 @@ function getAverageChannel(image,channel)
 	return total/(image_width*image_height)
 end
 
-function transferAverageChannel (image,channel,ratio)
+function transferAverageChannel (imag,channel,ratio)
 	image_width=image:size()[2]
 	image_height=image:size()[3]
 	for i=1,image_width,1 do
@@ -552,29 +616,29 @@ function transferAverageChannel (image,channel,ratio)
 			image[channel][i][j]=image[channel][i][j]*ratio
 		end
 	end
-	return image
+	return imag
 end
 
-function TransferBlackViaYIQ(image,bwimage)
-	image_width=image:size()[2]
-	image_height=image:size()[3]
+function TransferBlackViaYIQ(imag,bwimage)
+	image_width=imag:size()[2]
+	image_height=imag:size()[3]
 
 	for i=1,image_width,1 do
 		for j=1,image_height,1 do
-			imYIQ=RGBToYIQ(image[1][i][j],image[2][i][j],image[3][i][j])	
+			imYIQ=RGBToYIQ(imag[1][i][j],imag[2][i][j],imag[3][i][j])	
 			bwYIQ=RGBToYIQ(bwimage[1][i][j],bwimage[2][i][j],bwimage[3][i][j])
 			
 			Y=bwYIQ[1]
 			I=imYIQ[2]
 			Q=imYIQ[3]
 			RGB=YIQtoRGB(Y,I,Q)
-			image[1][i][j]=RGB[1]
-			image[2][i][j]=RGB[2]
-			image[3][i][j]=RGB[3]
+			imag[1][i][j]=RGB[1]
+			imag[2][i][j]=RGB[2]
+			imag[3][i][j]=RGB[3]
 		end
 	end	
 
-return image;
+return imag;
 end
 
 function campTo1or0 (Tensor3d)
@@ -598,15 +662,16 @@ function campTo1or0 (Tensor3d)
 	end
 	return Tensor3d
 end
-function TransferBlackViaHSV(image,bwimage)
-	image=campTo1or0(image)
+function TransferBlackViaHSV(imag,bwimage)
+	imag=campTo1or0(imag)
 	bwimage=campTo1or0(bwimage)
-	image_width=image:size()[2]
-	image_height=image:size()[3]
+
+	image_width=imag:size()[2]
+	image_height=imag:size()[3]
 
 	for i=1,image_width,1 do
 		for j=1,image_height,1 do
-			imHSV=RGBToHSV(image[1][i][j],image[2][i][j],image[3][i][j])	
+			imHSV=RGBToHSV(imag[1][i][j],imag[2][i][j],imag[3][i][j])	
 			bwHSV=RGBToHSV(bwimage[1][i][j],bwimage[2][i][j],bwimage[3][i][j])
 
 			H=bwHSV[1]
@@ -615,24 +680,45 @@ function TransferBlackViaHSV(image,bwimage)
 
 			RGB=HSVToRGB(H,S,V)
 			
-			image[1][i][j]=RGB[1]
-			image[2][i][j]=RGB[2]
-			image[3][i][j]=RGB[3]
+			imag[1][i][j]=RGB[1]
+			imag[2][i][j]=RGB[2]
+			imag[3][i][j]=RGB[3]
 			for k=1,3,1 do 
-				if(image[k][i][j])>1 then
+				if(imag[k][i][j])>1 then
 
-					image[k][i][j]=1
+					imag[k][i][j]=1
 			
 				end	
-				if(image[k][i][j]<0.01) then
-					image[k][i][j]=0.0			
+				if(imag[k][i][j]<0.01) then
+					imag[k][i][j]=0.0			
 				end
 			end
 		end
 	end	
 
-	print("maximum is now "..torch.max(image))
-	return image
+
+	return imag
+end
+
+
+function TransferBlack(img,orig)
+
+--	print(image.rgb2lab(orig:double())[3])
+	img=deprocess(img:double())
+	print("set:")
+--
+--	imgt=img
+	imgo=orig:double()
+	imgt=image.rgb2lab(img)
+	imgo=image.rgb2lab(imgo)
+	imgt[1]=imgo[1]
+	img=image.lab2rgb(imgt)
+	
+	print(img)
+	img=preprocess(img)
+
+return img:cuda()
+	
 end
 
 function RGBToHSV( red, green, blue )
