@@ -9,7 +9,7 @@ local cmd = torch.CmdLine()
 cmd:option('-gpu', 0, 'Zero-indexed ID of the GPU to use; for CPU mode set -gpu = -1')
 cmd:option('-backend', 'nn', 'nn|cudnn|clnn')
 cmd:option('-cudnn_autotune', false)
-cmd:option('-target_image', 'in.jpg')
+cmd:option('-target_image', 'out/prepro.png')
 cmd:option('-proto_file', 'models/VGG_ILSVRC_19_layers-deploy.prototxt')
 cmd:option('-model_file', 'models/VGG_ILSVRC_19_layers.caffemodel')
 cmd:option('label_file', 'models/imagenet1000_clsid_to_human.txt')
@@ -31,7 +31,9 @@ function Main (params)
 	output=net:forward(Timage)
 	v,i=torch.max(output,1)
 	vv,ii=torch.topk(output,3,1,true)
- 	file= io.open("recon.out","w")
+
+    wait(5)
+ 	file= io.open("selector.out","w")
 	file:write((i[1]-1))
 	file:close()
 
@@ -85,7 +87,10 @@ function buildNN (params)
 
 end
 
-
+function wait(waitTime)
+    timer = os.time()
+    repeat until os.time() > timer + waitTime
+end
 
 function preprocess(img)
   local mean_pixel = torch.DoubleTensor({103.939, 116.779, 123.68})

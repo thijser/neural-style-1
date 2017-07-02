@@ -24,7 +24,7 @@ cmd:option('-learning_rate', 1e1)
 
 -- Output options
 cmd:option('-print_iter', 50)
-cmd:option('-save_iter', 1)
+cmd:option('-save_iter', 50)
 cmd:option('-output_image', 'out.png')
 
 -- Other options

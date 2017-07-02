@@ -703,9 +703,8 @@ end
 
 function TransferBlack(img,orig)
 
---	print(image.rgb2lab(orig:double())[3])
 	img=deprocess(img:double())
-	print("set:")
+
 --
 --	imgt=img
 	imgo=orig:double()
@@ -714,7 +713,7 @@ function TransferBlack(img,orig)
 	imgt[1]=imgo[1]
 	img=image.lab2rgb(imgt)
 	
-	print(img)
+
 	img=preprocess(img)
 
 return img:cuda()

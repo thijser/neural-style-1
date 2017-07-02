@@ -12,12 +12,12 @@ cmd:option('-cudnn_autotune', false)
 cmd:option('-image_size', 64, 'Maximum height / width of generated image')
 
 
-cmd:option('-target_image', 'in.jpg')
+cmd:option('-target_image', 'out/prepro.png')
 cmd:option('-avaible_images', 'in.jpg,tankbw.jpg,hawaii.jpg,aeaecb2791801e2bfeb37f281599a885.jpg,tt.png,tt2.jpg')
 cmd:option('image_count',2)
 cmd:option('-proto_file', 'models/VGG_ILSVRC_19_layers-deploy.prototxt')
 cmd:option('-model_file', 'models/VGG_ILSVRC_19_layers.caffemodel')
-cmd:option('-selectorGenerations', 30)
+cmd:option('-selectorGenerations', 1)
 cmd:option('-selectorWidth', 5)
 cmd:option('-selectorDepth', 6)
 cmd:option('neural_Content_eval_Layer' ,'conv5_4') 
@@ -61,11 +61,14 @@ if(#selectedImages~=params.image_count) then
 	return 999999999999999999999999999999999999999999999999999999999999999
 	end
 
-	coleval=evalHueImages(params,selectedImages) 
+	coleval=evalHueImages(params,selectedImages) *5000*18
     neuroval=neuralEval(params,selectedImages)
 	evalValue=coleval+neuroval
 	cache[selectedImages]=evalValue
-	return evalValue
+    print("coleval="..coleval )
+    print("neuroval="..neuroval )
+		
+    return evalValue
 	
 end
 
@@ -151,13 +154,29 @@ end
  function main(params)
 	local avImages = params.avaible_images:split(',')
 	local selectedImages=evolve(params,avImages)
-	print(selectedImages)
-	
+    print('selected:')
+	print(tabtostr(selectedImages[1]))
+    print("writing selected")
+ 	file= io.open("selector.out","w")
+	file:write(tabtostr(selectedImages[1]))
+	print("done writing selector")
+	file:close()
+		
 
 end
 
 
-
+function tabtostr(tab)
+    str=""
+	for k,v in pairs(tab) do 
+        print(v)
+	    str=str..','..v	
+			
+	end
+	str=str:sub(2,str:len())
+    str=string.gsub(str, "\n", "")
+    return str
+end
 local cnn = nil
 function buildSelectorNetworkOrGet(params)
 

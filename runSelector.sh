@@ -10,6 +10,6 @@ else
 fi 
 cd ..
 
-c="th imageSelector.lua -avaible_images $(find t/Pictures -type f \( -iname \*.jpg -o -iname \*.png \) -printf '%p,' | sed 's/,$//')"
+c="th imageSelector.lua -avaible_images $(find t/Pictures -type f \( -iname \*.jpg -o -iname \*.png \) -printf '%p,' | sed 's/,$//') "
 echo $c
 eval $c
