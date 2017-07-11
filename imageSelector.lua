@@ -5,6 +5,8 @@ require 'optim'
 require('image')
 require("neural_style.lua")
 require 'loadcaffe'
+require 'EMDCriterion'
+
 local cmd = torch.CmdLine()
 cmd:option('-gpu', 0, 'Zero-indexed ID of the GPU to use; for CPU mode set -gpu = -1')
 cmd:option('-backend', 'nn', 'nn|cudnn|clnn')
@@ -14,10 +16,10 @@ cmd:option('-image_size', 64, 'Maximum height / width of generated image')
 
 cmd:option('-target_image', 'out/prepro.png')
 cmd:option('-avaible_images', 'in.jpg,tankbw.jpg,hawaii.jpg,aeaecb2791801e2bfeb37f281599a885.jpg,tt.png,tt2.jpg')
-cmd:option('image_count',2)
+cmd:option('image_count',5)
 cmd:option('-proto_file', 'models/VGG_ILSVRC_19_layers-deploy.prototxt')
 cmd:option('-model_file', 'models/VGG_ILSVRC_19_layers.caffemodel')
-cmd:option('-selectorGenerations', 1)
+cmd:option('-selectorGenerations', 10)
 cmd:option('-selectorWidth', 5)
 cmd:option('-selectorDepth', 6)
 cmd:option('neural_Content_eval_Layer' ,'conv5_4') 
@@ -306,6 +308,9 @@ end
 	return contentDist
 end
 
+
+
+  
 function evalHueImages(params,tarImages)
 
   
@@ -318,8 +323,42 @@ function evalHueImages(params,tarImages)
 	
   end
 
- return ColourCompareHSL(images)
+ return ColourCompareHistEMD(images)
 
+end
+
+function ColourCompareHistEMD (images)
+
+	sumdistance=0
+    r1={}
+	r2={}
+	r3={}
+	for i=1,#images do 
+
+		v1=images[i][{{},1}]
+		v2=images[i][{{},2}]
+		v3=images[i][{{},3}]
+	    local hist = torch.histc(v1,20,-1,1)
+	    r1[i] = hist:reshape(1,hist:nElement())
+	    local hist = torch.histc(v2,20,-1,1)
+	    r2[i] = hist:reshape(1,hist:nElement())
+	    local hist = torch.histc(v3,20,-1,1)
+	    r3[i] = hist:reshape(1,hist:nElement())
+
+	end
+   
+   criterion = nn.EMDCriterion()
+    for i=1,#images do 
+       for j=1,#images do 
+
+			local loss = criterion:forward(r1[i],r1[j])
+			local loss2 = criterion:forward(r2[i],r2[j])
+			local loss3 = criterion:forward(r3[i],r3[j])
+			sumdistance = sumdistance + loss+loss2+loss3
+			
+       end
+   end
+return sumdistance
 end
 
 function ColourCompareHSL(images)
@@ -330,8 +369,10 @@ function ColourCompareHSL(images)
 		k[i]=imagesum
 
 	end
-
+   
 	for i = 1, #images do 
+        print(torch.max(images))
+        print(torch.min(images))
 		hsvA=RGBToHSV(k[i][1][1][1],k[i][2][1][1],k[i][3][1][1]) 
     	for j = 1, #images do
 			hsvB=RGBToHSV(k[j][1][1][1],k[j][2][1][1],k[j][3][1][1]) 

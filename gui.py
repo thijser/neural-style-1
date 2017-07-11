@@ -4,13 +4,16 @@ from PIL import Image, ImageTk
 import os
 from time import sleep
 
-filename="in.jpg"
+
+
+
 ########################################################################
 class MyApp(object):
     """"""
-    
+
     #----------------------------------------------------------------------
     def __init__(self, parent):
+        self.filename="in.jpg"
         """Constructor"""
         self.root = parent
         self.root.title("Main frame")
@@ -23,11 +26,11 @@ class MyApp(object):
         btn2 = Tk.Button(self.frame,text="run",command=self.runAll)
         btn2.pack()
 
-
-        img = ImageTk.PhotoImage(Image.open(filename))
-        panel = Tk.Label(root, image = img)
-        panel.pack(side = "bottom", fill = "both", expand = "yes")
+        img = ImageTk.PhotoImage(Image.open(self.filename))
+        self.panel = Tk.Label(root, image = img)
+        self.panel.pack(side = "bottom", fill = "both", expand = "yes")
         root.mainloop()
+
 
 	
     #----------------------------------------------------------------------
@@ -37,12 +40,11 @@ class MyApp(object):
  
     #----------------------------------------------------------------------
     def LoadImage(self):
-		filename = askopenfilename() # show an "Open" dialog box and return the path to the selected file
-		print(filename)
-		img = ImageTk.PhotoImage(Image.open(filename))
-		panel = Tk.Label(root, image = img)
-		panel.pack(side = "bottom", fill = "both", expand = "yes")
-		root.mainloop()
+		self.filename = askopenfilename() # show an "Open" dialog box and return the path to the selected file
+		print(self.filename)
+		img = ImageTk.PhotoImage(Image.open(self.filename))
+		self.panel.configure(image =img)
+		self.panel.image=img
     #----------------------------------------------------------------------
     def onCloseOtherFrame(self, otherFrame):
         """"""
@@ -74,8 +76,7 @@ class MyApp(object):
  
 
     def runAll(self):
-
-        os.system("python ./zhang/colorization/colorize.py -img_in "+filename+" -img_out out/prepro.png > /dev/null" )
+        os.system("python ./zhang/colorization/colorize.py -img_in "+self.filename+" -img_out out/prepro.png > /dev/null" )
 
         print("executing everything")
         os.system("th imageRecon.lua -target_image out/prepro.png")
@@ -87,9 +88,10 @@ class MyApp(object):
 
         contentstr=contentstr.replace(",","")
         contentstr=contentstr.replace(" ","_")
-        os.system("rm t/Pictures/* -r")
+        #os.system("rm t/Pictures/* -r")
         print("./runSelector.sh " + contentstr[1:] + " 2")
-        os.system("./runSelector.sh " + contentstr[1:] + " 100")   
+        #os.system("./runSelector.sh " + contentstr[1:] + " 100")   
+        os.system("./runSelector.sh ")  
         SelectedStr=self.ReadInSelectorOutput()
 
 

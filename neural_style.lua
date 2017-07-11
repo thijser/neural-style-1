@@ -345,7 +345,7 @@ end
 	grad=grey+grad 
 	end
 
-	img=TransferBlack(img,content_imageprep)
+	--img=TransferBlack(img,content_imageprep)
     for _, mod in ipairs(content_losses) do
       loss = loss + mod.loss
     end
