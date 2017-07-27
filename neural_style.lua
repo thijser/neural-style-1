@@ -309,7 +309,7 @@ end
     if should_save then
       local disp = deprocess(img:double())
       disp = image.minmax{tensor=disp, min=0, max=1}
-      local filename = build_filename("post",params.output_image, t)
+      local filename = build_filename("LAB",params.output_image, t)
       local prefilename = build_filename("prepost",params.output_image, t)
       if t == params.num_iterations then
         filename = params.output_image
@@ -319,10 +319,24 @@ end
       if params.original_colors == 1 then
         disp = original_colors(content_image, disp)
       end
+    print(prefilename)
 	image.save(prefilename,disp)
-	disp=deprocess(TransferBlack(preprocess(disp),content_image):double())
-	
-      image.save(filename, disp)
+	displab=deprocess(TransferBlack(preprocess(disp),content_image):double())
+
+  
+	       collectgarbage('collect')
+      image.save(filename, displab)
+      f=build_filename("YIG",params.output_image, t)
+      displab=nil
+    collectgarbage('collect')
+      imgg=TransferBlackViaYIQ(disp,preprocess(content_image)
+      image.save(f,imgg)
+      imgg=nil
+    collectgarbage('collect')
+      f=build_filename("HSV",params.output_image, t)
+      imgg=deprocess(TransferBlackViaHSV(disp,content_image))
+      image.save()
+
     end
   end
 
@@ -338,6 +352,7 @@ end
     net:forward(x)
 	loss=0
     local grad = net:updateGradInput(x, dy)
+
 	if num_calls%3==-10 then
 		
 	grey=GreyGradientLAB(content_imageprep,img)
@@ -352,6 +367,9 @@ end
     for _, mod in ipairs(style_losses) do
       loss = loss + mod.loss
     end
+    print(loss)
+    collectgarbage('collect')
+
     maybe_print(num_calls, loss)
     maybe_save(num_calls)
 
@@ -444,6 +462,7 @@ function ContentLoss:updateOutput(input)
 end
 
 function ContentLoss:updateGradInput(input, gradOutput)
+
   if input:nElement() == self.target:nElement() then
     self.gradInput = self.crit:backward(input, self.target)
   end
@@ -452,6 +471,7 @@ function ContentLoss:updateGradInput(input, gradOutput)
   end
   self.gradInput:mul(self.strength)
   self.gradInput:add(gradOutput)
+  print(self.gradInput:size())
   return self.gradInput
 end
 
@@ -662,43 +682,7 @@ function campTo1or0 (Tensor3d)
 	end
 	return Tensor3d
 end
-function TransferBlackViaHSV(imag,bwimage)
-	imag=campTo1or0(imag)
-	bwimage=campTo1or0(bwimage)
 
-	image_width=imag:size()[2]
-	image_height=imag:size()[3]
-
-	for i=1,image_width,1 do
-		for j=1,image_height,1 do
-			imHSV=RGBToHSV(imag[1][i][j],imag[2][i][j],imag[3][i][j])	
-			bwHSV=RGBToHSV(bwimage[1][i][j],bwimage[2][i][j],bwimage[3][i][j])
-
-			H=bwHSV[1]
-			S=imHSV[2]
-			V=imHSV[3]
-
-			RGB=HSVToRGB(H,S,V)
-			
-			imag[1][i][j]=RGB[1]
-			imag[2][i][j]=RGB[2]
-			imag[3][i][j]=RGB[3]
-			for k=1,3,1 do 
-				if(imag[k][i][j])>1 then
-
-					imag[k][i][j]=1
-			
-				end	
-				if(imag[k][i][j]<0.01) then
-					imag[k][i][j]=0.0			
-				end
-			end
-		end
-	end	
-
-
-	return imag
-end
 
 
 function TransferBlack(img,orig)
@@ -719,6 +703,27 @@ function TransferBlack(img,orig)
 return img:cuda()
 	
 end
+
+
+function TransferBlackViaHSV(img,orig)
+
+	img=deprocess(img:double())
+    collectgarbage('collect')
+
+	imgo=orig:double()
+	imgt=image.rgb2HSV(img)
+	imgo=image.rgb2HSV(imgo)
+	imgt[1]=imgo[1]
+	img=image.HSV2rgb(imgt)
+	collectgarbage('collect')
+
+
+	img=preprocess(img)
+
+return img:cuda()
+	
+end
+
 
 function RGBToHSV( red, green, blue )
 	-- Returns the HSV equivalent of the given RGB-defined color https://gist.github.com/GigsD4X/8513963
