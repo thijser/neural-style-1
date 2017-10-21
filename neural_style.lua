@@ -14,7 +14,7 @@ cmd:option('-style_image', 'examples/inputs/seated-nude.jpg',
 cmd:option('-style_blend_weights', 'nil')
 cmd:option('-content_image', 'examples/inputs/tubingen.jpg',
            'Content target image')
-cmd:option('-image_size', 768, 'Maximum height / width of generated image')
+cmd:option('-image_size', 1045, 'Maximum height / width of generated image')
 cmd:option('-gpu', 0, 'Zero-indexed ID of the GPU to use; for CPU mode set -gpu = -1')
 
 -- Optimization options
@@ -244,6 +244,18 @@ end
         module.gradWeight = nil
         module.gradBias = nil
     end
+
+  if torch.type(module) == 'nn.Dropout' then
+        -- remove these, not used, but uses gpu memory
+        module.gradWeight = nil
+        module.gradBias = nil
+    end
+  if torch.type(module) == 'nn.InnterProduct' then
+        -- remove these, not used, but uses gpu memory
+        module.gradWeight = nil
+        module.gradBias = nil
+    end
+
   end
   collectgarbage()
   
@@ -326,17 +338,26 @@ end
   
 	       collectgarbage('collect')
       image.save(filename, displab)
+
+    collectgarbage('collect')
+      f=build_filename("HSV",params.output_image, t)
+      
+      imgg=TransferBlackViaHSV(disp,content_image)
+      image.save(f,imgg)
+
+      f=build_filename("HSVE",params.output_image, t)
+      displab=nil
+    collectgarbage('collect')
+      imgg=TransferBlackViaHSVelement(disp,content_image)
+      image.save(f,imgg)
+      imgg=nil
+
       f=build_filename("YIG",params.output_image, t)
       displab=nil
     collectgarbage('collect')
-      imgg=TransferBlackViaYIQ(disp,preprocess(content_image)
-      image.save(f,imgg)
+      imgg2=TransferBlackViaYIQ(disp,content_image)
+      image.save(f,imgg2)
       imgg=nil
-    collectgarbage('collect')
-      f=build_filename("HSV",params.output_image, t)
-      imgg=deprocess(TransferBlackViaHSV(disp,content_image))
-      image.save()
-
     end
   end
 
@@ -367,7 +388,7 @@ end
     for _, mod in ipairs(style_losses) do
       loss = loss + mod.loss
     end
-    print(loss)
+
     collectgarbage('collect')
 
     maybe_print(num_calls, loss)
@@ -402,7 +423,7 @@ function build_filename(anote,output_image, iteration)
   local directory = paths.dirname(output_image)
 
 
-  return string.format('%s/out/%s_%s_%d.%s',directory, basename,anote, iteration, ext)
+  return string.format('%s/%s_%s_%d.%s',directory, basename,anote, iteration, ext)
 end
 
 
@@ -471,7 +492,7 @@ function ContentLoss:updateGradInput(input, gradOutput)
   end
   self.gradInput:mul(self.strength)
   self.gradInput:add(gradOutput)
-  print(self.gradInput:size())
+
   return self.gradInput
 end
 
@@ -640,6 +661,7 @@ function transferAverageChannel (imag,channel,ratio)
 end
 
 function TransferBlackViaYIQ(imag,bwimage)
+    imag = torch.Tensor(imag:size()):copy(imag)
 	image_width=imag:size()[2]
 	image_height=imag:size()[3]
 
@@ -652,15 +674,40 @@ function TransferBlackViaYIQ(imag,bwimage)
 			I=imYIQ[2]
 			Q=imYIQ[3]
 			RGB=YIQtoRGB(Y,I,Q)
-			imag[1][i][j]=RGB[1]
-			imag[2][i][j]=RGB[2]
-			imag[3][i][j]=RGB[3]
+
+			imag[1][i][j]=RGB[1]*100
+			imag[2][i][j]=RGB[2]*100
+			imag[3][i][j]=RGB[3]*100
 		end
 	end	
 
-return imag;
+return imag/128;
 end
 
+
+function TransferBlackViaHSVelement(imag,bwimage)
+    imag = torch.Tensor(imag:size()):copy(imag)
+	image_width=imag:size()[2]
+	image_height=imag:size()[3]
+    
+	for i=1,image_width,1 do
+		for j=1,image_height,1 do
+			imYIQ=RGBToHSV(imag[1][i][j],imag[2][i][j],imag[3][i][j])	
+			bwYIQ=RGBToHSV(bwimage[1][i][j],bwimage[2][i][j],bwimage[3][i][j])
+			
+			Y=bwYIQ[1]
+			I=imYIQ[2]
+			Q=imYIQ[3]
+			RGB=HSVToRGB(Y,I,Q)
+
+			imag[1][i][j]=RGB[1]*100
+			imag[2][i][j]=RGB[2]*100
+			imag[3][i][j]=RGB[3]*100
+		end
+	end	
+
+return imag/128;
+end
 function campTo1or0 (Tensor3d)
 
 	tensor_width=Tensor3d:size()[2]
@@ -706,19 +753,24 @@ end
 
 
 function TransferBlackViaHSV(img,orig)
+    return img
+end 
+function TransferBlackViaHSV3(img,orig)
 
-	img=deprocess(img:double())
+
     collectgarbage('collect')
 
 	imgo=orig:double()
-	imgt=image.rgb2HSV(img)
-	imgo=image.rgb2HSV(imgo)
-	imgt[1]=imgo[1]
-	img=image.HSV2rgb(imgt)
+	imgt=image.rgb2hsv(img)
+	imgo=image.rgb2hsv(imgo)
+
+    imgt[2]=imgo[2]
+    imgt[1]=imgo[1]
+	img=image.hsv2rgb(imgt)
 	collectgarbage('collect')
 
 
-	img=preprocess(img)
+
 
 return img:cuda()
 	
@@ -808,9 +860,11 @@ function RGBToYIQ(R,G,B)
     return {Y,I,Q}
 end
 function YIQtoRGB (Y,I,Q)
+
     R= (1*Y)+(0.956*I)+(0.621*Q)
     G= (1*Y)-(0.272*I)-(0.647*Q)
     B= (1*Y)-(1.106*I)+(1.703*Q)
+
     return {R,G,B}
 end
 --local params = cmd:parse(arg)

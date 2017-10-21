@@ -1,0 +1,17 @@
+th neural_stylerun.lua -content_image out/prepro.png -style_image t/Pictures/silky+terrier+Sydney+silky/ActiOn_40.jpg,t/Pictures/silky+terrier+Sydney+silky/ActiOn_95.jpg,t/Pictures/silky+terrier+Sydney+silky/ActiOn_83.jpg,t/Pictures/silky+terrier+Sydney+silky/ActiOn_11.jpg,t/Pictures/silky+terrier+Sydney+silky/ActiOn_84.jpg
+th neural_stylerun.lua -content_image out/prepro.png -style_image t/Pictures/silky+terrier+Sydney+silky/ActiOn_84.jpg,t/Pictures/silky+terrier+Sydney+silky/ActiOn_40.jpg,t/Pictures/silky+terrier+Sydney+silky/ActiOn_73.jpg,t/Pictures/silky+terrier+Sydney+silky/ActiOn_11.jpg,t/Pictures/silky+terrier+Sydney+silky/ActiOn_96.jpg
+th neural_stylerun.lua -content_image out/prepro.png -style_image t/Pictures/silky+terrier+Sydney+silky/ActiOn_40.jpg,t/Pictures/silky+terrier+Sydney+silky/ActiOn_73.jpg,t/Pictures/silky+terrier+Sydney+silky/ActiOn_99.jpg,t/Pictures/silky+terrier+Sydney+silky/ActiOn_83.jpg,t/Pictures/silky+terrier+Sydney+silky/ActiOn_96.jpg
+th neural_stylerun.lua -content_image out/prepro.png -style_image t/Pictures/silky+terrier+Sydney+silky/ActiOn_38.jpg,t/Pictures/silky+terrier+Sydney+silky/ActiOn_29.jpg,t/Pictures/silky+terrier+Sydney+silky/ActiOn_94.jpg,t/Pictures/silky+terrier+Sydney+silky/ActiOn_52.jpg,t/Pictures/silky+terrier+Sydney+silky/ActiOn_10.jpg
+th neural_stylerun.lua -content_image out/inbw.jpg -style_image 187
+th neural_stylerun.lua -content_image out/inbw.jpg -style_image 187
+th neural_stylerun.lua -content_image inbw.jpg -style_image 187
+th neural_stylerun.lua -content_image inbw.jpg -style_image t/Pictures/cannon/ActiOn_52.png,t/Pictures/cannon/ActiOn_93.jpg,t/Pictures/cannon/ActiOn_81.png,t/Pictures/cannon/ActiOn_78.jpg,t/Pictures/cannon/ActiOn_48.jpg
+th neural_stylerun.lua -content_image inbw.jpg -style_image t/Pictures/garbage+truck+dustcart/ActiOn_29.jpg,t/Pictures/garbage+truck+dustcart/ActiOn_97.jpg,t/Pictures/garbage+truck+dustcart/ActiOn_92.jpg,t/Pictures/garbage+truck+dustcart/ActiOn_44.jpg,t/Pictures/garbage+truck+dustcart/ActiOn_45.jpg
+th neural_stylerun.lua -content_image out/prepro.png -style_image 471
+th neural_stylerun.lua -content_image out/prepro.png -style_image 471
+th neural_stylerun.lua -content_image out/prepro.png -style_image 536
+th neural_stylerun.lua -content_image out/prepro.png -style_image 847
+th neural_stylerun.lua -content_image out/prepro.png -style_image 471
+th neural_stylerun.lua -content_image out/prepro.png -style_image 471
+th neural_stylerun.lua -content_image out/prepro.png -style_image 847
+th neural_stylerun.lua -content_image out/prepro.png -style_image 471

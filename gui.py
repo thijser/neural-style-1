@@ -13,7 +13,7 @@ class MyApp(object):
 
     #----------------------------------------------------------------------
     def __init__(self, parent):
-        self.filename="in.jpg"
+        self.filename="inbw.jpg"
         """Constructor"""
         self.root = parent
         self.root.title("Main frame")
@@ -88,16 +88,18 @@ class MyApp(object):
 
         contentstr=contentstr.replace(",","")
         contentstr=contentstr.replace(" ","_")
-        #os.system("rm t/Pictures/* -r")
-        print("./runSelector.sh " + contentstr[1:] + " 2")
-        #os.system("./runSelector.sh " + contentstr[1:] + " 100")   
-        os.system("./runSelector.sh ")  
+        os.system("rm t/Pictures/* -r")
+        print("./runSelector.sh " + contentstr[1:] + " 300 " +str(5))
+        os.system("./runSelector.sh " + contentstr[1:] + " 300 "+ str(5))   
+        #os.system("./runSelector.sh ")  
         SelectedStr=self.ReadInSelectorOutput()
 
 
         print("th neural_stylerun.lua -content_image out/prepro.png" + " -style_image "+ SelectedStr)
         os.system("th neural_stylerun.lua -content_image out/prepro.png" + " -style_image "+ SelectedStr)
-
+        with open("executelog.txt", "a") as myfile:
+             myfile.write("th neural_stylerun.lua -content_image out/prepro.png" + " -style_image "+ SelectedStr)
+             myfile.write("\n")
         
         		 
 #----------------------------------------------------------------------

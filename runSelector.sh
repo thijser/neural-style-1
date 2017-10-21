@@ -9,7 +9,13 @@ else
 	python imsearch.py $1 $2
 fi 
 cd ..
+echo $3
 
-c="th imageSelector.lua -avaible_images $(find t/Pictures -type f \( -iname \*.jpg -o -iname \*.png \) -printf '%p,' | sed 's/,$//') "
+c="th imageSelectorroul.lua -avaible_images $(find t/Pictures -type f \( -iname \*.jpg -o -iname \*.png \) -printf '%p,' | sed 's/,$//') "
+
 echo $c
 eval $c
+
+
+
+

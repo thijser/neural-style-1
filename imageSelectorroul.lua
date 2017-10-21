@@ -19,11 +19,13 @@ cmd:option('-avaible_images', 'in.jpg,tankbw.jpg,hawaii.jpg,aeaecb2791801e2bfeb3
 cmd:option('-image_count',5)
 cmd:option('-proto_file', 'models/VGG_ILSVRC_19_layers-deploy.prototxt')
 cmd:option('-model_file', 'models/VGG_ILSVRC_19_layers.caffemodel')
-cmd:option('-selectorGenerations', 10)
+cmd:option('-selectorGenerations', 200)
 cmd:option('-selectorWidth', 4)
-cmd:option('-selectorDepth', 25)
+cmd:option('-selectorDepth', 5)
 cmd:option('-neural_Content_eval_Layer' ,'conv5_4') 
 cmd:option('-colweight' , 90000)
+cmd:option('mode','top') --roulmate,topmate,top,roul
+cmd:option('mutate',true)
 
 
 --function from https://gist.github.com/MihailJP/3931841
@@ -35,6 +37,13 @@ function copy (t) -- shallow-copy a table
     setmetatable(target, meta)
     return target
 end
+
+NumEval=0
+
+starttime=os.time()
+
+math.randomseed(starttime)
+rndsavename=math.random()
 
 
  function randomSelectImages(avImages, count)
@@ -55,42 +64,52 @@ end
 
 cache={}
  function evaluate(params,selectedImages)
-
-if(cache[selectedImages~=nil]) then
-	return cache[selectedImages]
-end
-if(#selectedImages~=params.image_count) then
-	return 999999999999999999999999999999999999999999999999999999999999999
+	if(cache[selectedImages~=nil]) then
+		return cache[selectedImages]
 	end
-
+	if(#selectedImages~=params.image_count) then
+		return 999999999999999999999999999999999999999999999999999999999999999
+	end
 	coleval=evalHueImages(params,selectedImages) *params.colweight
     neuroval=neuralEval(params,selectedImages)
 	evalValue=coleval+neuroval
 	cache[selectedImages]=evalValue
-
-		
+	NumEval=NumEval+1
     return evalValue
 	
 end
 
  function SelectTop(params,images,count)
+
 	local values={}  
 	for k,v in pairs(images) do
 		local noError,res=pcall(evaluate,params,v)
 		--res=evaluate(params,v) noError=true
-	if noError then 
+	if noError and res~=nil then 
+
 		values[#values+1]= {v, res}
 	else
-
+    
     values[v] = 9999999999999999999999999999999999999999999999999999999999
   	end
-
+    
   end
 
+
 function compare(a,b)
+
+  if a==nil  then return false end
+  if a[2] ==nil then return false end
+
+  if b==nil  then return false end
+  if b[2] ==nil then return false end
+  
+ 
   return a[2] < b[2]
 end
 	ret={}
+
+
   table.sort(values,compare)
 
 
@@ -98,11 +117,18 @@ end
 		ret[i]=values[i][1]
 	end
 
-    logfile = assert(io.open('epochlog.txt', "a"))
-    print("log: " .. values[1][2] )
-    logfile:write(values[1][2],"\n")
-    logfile:close()
+	score=values[1][2]
 	return ret
+end
+
+score=0
+
+function log(params)
+
+    logfile = assert(io.open('epochlog'..params.mode..rndsavename..'.txt', "a"))
+    print("log: " .. score )
+    logfile:write(score,' ',NumEval,' ',os.time()-starttime,"\n")
+    logfile:close()
 end
 
 
@@ -122,12 +148,13 @@ function addRange(array1,array2)
 	end
 end
 
-function mutate(params,selected,avImages)
-	for x = 1,	params.selectorWidth do
-		addRange(selected,mutateSingle(params.selectorDepth,selected[x],avImages))	
+function mutate(selected,avImages,num)
+
+	for x = 1,	#selected do
+		addRange(selected,mutateSingle(num,selected[x],avImages))	
 	end
 
-    print(selected)
+
 	return selected
 end
 
@@ -147,7 +174,7 @@ function mutateSingle(count,orig,avImages)
 	return ret
 end
 
- function evolve(params,avImages)
+function evolve(params,avImages)
 	
 	local selected={}
 	for i=1,params.selectorDepth*params.selectorDepth do
@@ -155,11 +182,32 @@ end
 	end
 	
 	for i=1,params.selectorGenerations do
-		selected=SelectTop(params,selected,params.selectorWidth)
-		selected=mutate(params,selected,avImages)
+
+
+ 		if params.mode=='top' then
+			selected=SelectTop(params,selected,params.selectorWidth)
+			selected=mutate(selected,avImages,params.selectorDepth)
+
+		end
+		if params.mode=='topmate'  then
+			selected=SelectTop(params,selected,params.selectorWidth)
+			selected={}
+			for i=1,#selected do 
+				for j=1,#selected do
+					selected[#selected+1]=mate(selected[i],selected[j])
+				end
+			end
+			mutate(params,selected,avImages,1)
+
+		end
+
+    log(params)
 	end
 	return SelectTop(params,selected,1)
 end
+
+
+
  function main(params)
 	local avImages = params.avaible_images:split(',')
 	local selectedImages=evolve(params,avImages)
@@ -178,7 +226,7 @@ end
 function tabtostr(tab)
     str=""
 	for k,v in pairs(tab) do 
-        print(v)
+
 	    str=str..','..v	
 			
 	end
@@ -228,6 +276,30 @@ function buildSelectorNetworkOrGet(params)
   return cnn
 end
 
+function mate(parentA, parentB)
+   A=copy(parentA)
+   B=copy(parentB)
+   res=intersection(A,B)
+   for k,v in pairs(res) do 
+      removeByValue(A,v)
+      removeByValue(B,v)
+   end
+
+   for i=1,#A do 
+	sel=nil
+     if(math.random(2)==1) then 
+		sel=A
+	else
+		sel=B
+	end
+     res[#res+1]=sel[i]
+   end
+
+ return res
+   
+
+
+end
  function neuralEval(params, selectedImages)
     collectgarbage()
 	cnn=buildSelectorNetworkOrGet(params)
@@ -378,8 +450,7 @@ function ColourCompareHSL(images)
 	end
    
 	for i = 1, #images do 
-        print(torch.max(images))
-        print(torch.min(images))
+
 		hsvA=RGBToHSV(k[i][1][1][1],k[i][2][1][1],k[i][3][1][1]) 
     	for j = 1, #images do
 			hsvB=RGBToHSV(k[j][1][1][1],k[j][2][1][1],k[j][3][1][1]) 
@@ -444,8 +515,26 @@ function RGBToHSV( red, green, blue )
 end
 
 
-math.randomseed(os.time())
+
 local params = cmd:parse(arg)
+
+
+function intersection (a,b)
+      local res = new{}
+      for k in pairs(a) do
+        res[k] = b[k]
+      end
+      return res
+    end
+
+function removeByValue(table,value)
+  for k,v in pairs(table1)do
+    if v == table2[index] then
+       table.remove(table1, k)
+     break
+   end
+ end
+end
 return main(params)
 
 
