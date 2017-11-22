@@ -19,7 +19,8 @@ cmd:option('-avaible_images', 'in.jpg,tankbw.jpg,hawaii.jpg,aeaecb2791801e2bfeb3
 cmd:option('-image_count',5)
 cmd:option('-proto_file', 'models/VGG_ILSVRC_19_layers-deploy.prototxt')
 cmd:option('-model_file', 'models/VGG_ILSVRC_19_layers.caffemodel')
-cmd:option('-selectorGenerations', 200)
+cmd:option('-selectorGenerations', 200999)
+cmd:option('-timestop',600)
 cmd:option('-selectorWidth', 4)
 cmd:option('-selectorDepth', 5)
 cmd:option('-neural_Content_eval_Layer' ,'conv5_4') 
@@ -79,34 +80,34 @@ cache={}
 	
 end
 
- function SelectTop(params,images,count)
+function SelectTop(params,images,count)
 
 	local values={}  
 	for k,v in pairs(images) do
 		local noError,res=pcall(evaluate,params,v)
 		--res=evaluate(params,v) noError=true
-	if noError and res~=nil then 
+		if noError and res~=nil then 
 
-		values[#values+1]= {v, res}
-	else
+			values[#values+1]= {v, res}
+		else
+		
+	   	 values[v] = 9999999999999999999999999999999999999999999999999999999999
+	  	end
     
-    values[v] = 9999999999999999999999999999999999999999999999999999999999
-  	end
-    
-  end
+ 	 end
 
 
-function compare(a,b)
+	function compare(a,b)
 
-  if a==nil  then return false end
-  if a[2] ==nil then return false end
+	  if a==nil  then return false end
+	  if a[2] ==nil then return false end
 
-  if b==nil  then return false end
-  if b[2] ==nil then return false end
-  
- 
-  return a[2] < b[2]
-end
+	  if b==nil  then return false end
+	  if b[2] ==nil then return false end
+	  
+	 
+	  return a[2] < b[2]
+	end
 	ret={}
 
 
@@ -118,9 +119,13 @@ end
 	end
 
 	score=values[1][2]
+    print(ret)
 	return ret
 end
 
+function selectRoul(params,images,count)
+return images
+end
 score=0
 
 function log(params)
@@ -183,7 +188,9 @@ function evolve(params,avImages)
 	
 	for i=1,params.selectorGenerations do
 
-
+        if(os.time()-starttime>params.timestop)  then
+			break
+        end
  		if params.mode=='top' then
 			selected=SelectTop(params,selected,params.selectorWidth)
 			selected=mutate(selected,avImages,params.selectorDepth)
@@ -191,7 +198,6 @@ function evolve(params,avImages)
 		end
 		if params.mode=='topmate'  then
 			selected=SelectTop(params,selected,params.selectorWidth)
-			selected={}
 			for i=1,#selected do 
 				for j=1,#selected do
 					selected[#selected+1]=mate(selected[i],selected[j])
@@ -201,6 +207,20 @@ function evolve(params,avImages)
 
 		end
 
+		if params.mode=="roul" then
+			selected=selectRoul(params,selected,params.selectorWidth)
+			mutate(params,selected,avImages,1)
+		end
+
+		if params.mode=='roulmate'  then
+			selected=selectRoul(params,selected,params.selectorWidth)
+			for i=1,#selected do 
+				for j=1,#selected do
+					selected[#selected+1]=mate(selected[i],selected[j])
+				end
+			end
+			mutate(params,selected,avImages,1)
+		end
     log(params)
 	end
 	return SelectTop(params,selected,1)
@@ -519,17 +539,23 @@ end
 local params = cmd:parse(arg)
 
 
-function intersection (a,b)
-      local res = new{}
-      for k in pairs(a) do
-        res[k] = b[k]
-      end
-      return res
-    end
+--from http://www.phailed.me/2011/02/common-set-operations-in-lua/
+local function find(a, tbl)
+	for _,a_ in ipairs(tbl) do if a_==a then return true end end
+end
+--from http://www.phailed.me/2011/02/common-set-operations-in-lua/
+function intersection(a, b)
+	local ret = {}
+	for _,b_ in ipairs(b) do
+		if find(b_,a) then table.insert(ret, b_) end
+	end
+	return ret
+end
 
-function removeByValue(table,value)
+
+function removeByValue(table1,value)
   for k,v in pairs(table1)do
-    if v == table2[index] then
+    if v == value then
        table.remove(table1, k)
      break
    end
