@@ -109,7 +109,7 @@ function SelectTop(params,images,count)
 	  return a[2] < b[2]
 	end
 	ret={}
-
+	accres(values)
 
   table.sort(values,compare)
 
@@ -119,8 +119,50 @@ function SelectTop(params,images,count)
 	end
 
 	score=values[1][2]
-    print(ret)
 	return ret
+end
+
+
+function accres(zerovals)
+	sum=0
+    ret={} 
+    for a,b in pairs(zerovals) do
+		
+		if type(b)~='number'  then
+			sum=sum+1/b[2]
+            print(sum)
+
+			ret[sum]=b[1]
+		end
+	end
+	print(ret)
+	return ret
+
+end
+
+local function roll(t, dice)
+   if not dice then dice = 100 end --default dice = 100
+   local  c  =  0
+   local r = math.random(dice)
+   for i,n in pairs(t) do
+       c = c + n
+       if r <= c then
+           return i
+       end
+   end
+end
+
+
+local function roll(t, dice)
+   if not dice then dice = 100 end --default dice = 100
+   local  c  =  0
+   local r = math.random(dice)
+   for i,n in pairs(t) do
+       c = c + n
+       if r <= c then
+           return i
+       end
+   end
 end
 
 function selectRoul(params,images,count)

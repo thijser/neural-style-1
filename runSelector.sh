@@ -1,5 +1,5 @@
 echo "killing all other torch instances"
-killall -9  /home/thijser/torch/install/bin/luajit
+killall -9  /home/thijser/torch-cl/install/bin/luajit
 
 cd t 
 
