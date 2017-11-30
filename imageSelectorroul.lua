@@ -25,8 +25,8 @@ cmd:option('-selectorWidth', 4)
 cmd:option('-selectorDepth', 5)
 cmd:option('-neural_Content_eval_Layer' ,'conv5_4') 
 cmd:option('-colweight' , 90000)
-cmd:option('mode','top') --roulmate,topmate,top,roul
-cmd:option('mutate',true)
+cmd:option('mode','roulmate') --roulmate,topmate,top,roul,rand
+cmd:option('mutatechance',0.5)
 
 
 --function from https://gist.github.com/MihailJP/3931841
@@ -69,7 +69,7 @@ cache={}
 		return cache[selectedImages]
 	end
 	if(#selectedImages~=params.image_count) then
-		return 999999999999999999999999999999999999999999999999999999999999999
+		return 99999999999999999999999999999999999999999999999999999999999999999999
 	end
 	coleval=evalHueImages(params,selectedImages) *params.colweight
     neuroval=neuralEval(params,selectedImages)
@@ -79,6 +79,17 @@ cache={}
     return evalValue
 	
 end
+	function compare(a,b)
+
+	  if a==nil  then return false end
+	  if a[2] ==nil then return false end
+
+	  if b==nil  then return false end
+	  if b[2] ==nil then return false end
+	  
+	 
+	  return a[2] < b[2]
+	end
 
 function SelectTop(params,images,count)
 
@@ -91,27 +102,13 @@ function SelectTop(params,images,count)
 			values[#values+1]= {v, res}
 		else
 		
-	   	 values[v] = 9999999999999999999999999999999999999999999999999999999999
+	   	 values[v] = {v,999999999999999999999999999999999999999999999999999999999999999999999}
 	  	end
     
  	 end
 
-
-	function compare(a,b)
-
-	  if a==nil  then return false end
-	  if a[2] ==nil then return false end
-
-	  if b==nil  then return false end
-	  if b[2] ==nil then return false end
-	  
-	 
-	  return a[2] < b[2]
-	end
 	ret={}
-	accres(values)
-
-  table.sort(values,compare)
+    table.sort(values,compare)
 
 
 	for  i=1,count do
@@ -121,53 +118,132 @@ function SelectTop(params,images,count)
 	score=values[1][2]
 	return ret
 end
+function randgen(params,images,avImages)
 
 
+		rnd=randomSelectImages(avImages,params.image_count)
+        rndr={}
+		local noError,res=pcall(evaluate,params,rnd)
+		--res=evaluate(params,v) noError=true
+		if noError and res~=nil then 
+
+			rndr[0]={rnd, res}
+
+		else
+		
+	   	 rndr[0] = {rnd,99999999999999999999999999999999999999999999999999999999999999999999999999999}
+
+	  	end
+    
+  print(rndr)
+ print(" = rnd , images=")
+	print(images)
+	if images[0]==nil or rndr[0][2]<images[0][2] then 
+
+	score=rndr[0][2]
+		return rndr
+	else 
+	score=images[0][2]
+		return images
+	end
+end
+
+function roulrun(params,images)
+	local values={}  
+	for k,v in pairs(images) do
+		local noError,res=pcall(evaluate,params,v)
+		--res=evaluate(params,v) noError=true
+		if noError and res~=nil then 
+
+			values[#values+1]= {v, res}
+		else
+		
+	   	 values[v] = {v,99999999999999999999999999999999999999999999999999999999999999999999999999999}
+	  	end
+    
+ 	 end
+
+		ret={}
+    table.sort(values,compare)
+    ret[1]=values[1][1]
+	score=values[1][2]
+
+
+	for i=2, params.selectorDepth*params.selectorDepth  do 
+
+	firstpick=rollwheel(values)
+
+
+		secondpick=rollwheel(values)
+        mated=mate(firstpick,secondpick)
+		print("go")
+		print(#ret+1)
+		if math.random()<params.mutatechance then
+			mated=mutateSingle(1,mated,params.avaible_images:split(','))[1]
+
+		end
+		print(#ret+1)
+		ret[#ret+1]=mated
+		
+	end
+
+    return ret
+end
 function accres(zerovals)
-	sum=0
-    ret={} 
+    local sum=0
+    local ret={} 
+    index=0
     for a,b in pairs(zerovals) do
 		
 		if type(b)~='number'  then
 			sum=sum+1/b[2]
-            print(sum)
-
-			ret[sum]=b[1]
+			
+			ret[index]={b[1],sum}
 		end
 	end
-	print(ret)
 	return ret
 
 end
 
-local function roll(t, dice)
-   if not dice then dice = 100 end --default dice = 100
-   local  c  =  0
-   local r = math.random(dice)
+
+function roll(t)
+   max=t{#t-1}
+   local r = math.random()*max
    for i,n in pairs(t) do
-       c = c + n
-       if r <= c then
-           return i
+       if r <= n{2} then
+           return n{1}
        end
    end
 end
 
-
-local function roll(t, dice)
-   if not dice then dice = 100 end --default dice = 100
-   local  c  =  0
-   local r = math.random(dice)
+function sumtrans (v)
+  return 1/v
+end
+function rollwheel(t)
+   max=0
    for i,n in pairs(t) do
-       c = c + n
-       if r <= c then
-           return i
-       end
+        if(type(n)=='number') then
+           print("number made it into wrong table loc, ignored  >>>")
+           print(n)
+			else
+		max=max+sumtrans(n[2])
+		end
+   end
+
+
+   sum=0
+   local r = math.random()*max
+   for i,n in pairs(t) do
+        if(type(n)~='number') then
+		sum=sum+sumtrans(n[2])
+   	       if r <= sum then
+    	       return n[1]
+    	   end
+		end
    end
 end
 
-function selectRoul(params,images,count)
-return images
-end
+
 score=0
 
 function log(params)
@@ -207,7 +283,7 @@ end
 
 function mutateSingle(count,orig,avImages)
 
-	ret={}
+	res={}
 	for i=1,count do
 		rnd=math.random(#avImages)
 
@@ -215,16 +291,21 @@ function mutateSingle(count,orig,avImages)
 				rnd=math.random(#avImages)
 
 		end
-		ret[i]=copy(orig)
+		res[i]=copy(orig)
 		orig[math.random(#orig)]=avImages[rnd]
 	end	
-	return ret
+	return res
 end
 
 function evolve(params,avImages)
 	
 	local selected={}
-	for i=1,params.selectorDepth*params.selectorDepth do
+	if params.mode=='rand' then
+       initialSize=1
+    else    
+		initialSize=params.selectorDepth*params.selectorDepth
+    end
+	for i=1,initialSize do
 		selected[i]=randomSelectImages(avImages,params.image_count)
 	end
 	
@@ -249,20 +330,14 @@ function evolve(params,avImages)
 
 		end
 
-		if params.mode=="roul" then
-			selected=selectRoul(params,selected,params.selectorWidth)
-			mutate(params,selected,avImages,1)
+		if params.mode=="roul" or params.mode=='roulmate' then
+			selected=roulrun(params,selected)
+		end
+		if params.mode=="rand"  then
+			selected=randgen(params,selected,avImages)
 		end
 
-		if params.mode=='roulmate'  then
-			selected=selectRoul(params,selected,params.selectorWidth)
-			for i=1,#selected do 
-				for j=1,#selected do
-					selected[#selected+1]=mate(selected[i],selected[j])
-				end
-			end
-			mutate(params,selected,avImages,1)
-		end
+
     log(params)
 	end
 	return SelectTop(params,selected,1)
