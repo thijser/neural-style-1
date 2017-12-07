@@ -26,7 +26,7 @@ cmd:option('-selectorDepth', 5)
 cmd:option('-neural_Content_eval_Layer' ,'conv5_4') 
 cmd:option('-colweight' , 90000)
 cmd:option('mode','roulmate') --roulmate,topmate,top,roul,rand
-cmd:option('mutatechance',1)
+cmd:option('mutatechance',0.5)
 
 
 --function from https://gist.github.com/MihailJP/3931841
