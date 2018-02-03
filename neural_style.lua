@@ -338,26 +338,27 @@ end
   
 	       collectgarbage('collect')
       image.save(filename, displab)
-
+--[
     collectgarbage('collect')
-      f=build_filename("HSV",params.output_image, t)
+    --  f=build_filename("HSL",params.output_image, t)
       
-      imgg=TransferBlackViaHSV(disp,content_image)
-      image.save(f,imgg)
+  --    imgg=TransferBlackViaHSL3(disp,content_image)
+--      image.save(f,imgg)
 
-      f=build_filename("HSVE",params.output_image, t)
-      displab=nil
-    collectgarbage('collect')
-      imgg=TransferBlackViaHSVelement(disp,content_image)
-      image.save(f,imgg)
-      imgg=nil
+     -- f=build_filename("HSVE",params.output_image, t)
+    --  displab=nil
+   -- collectgarbage('collect')
+  --    imgg=TransferBlackViaHSVelement(disp,content_image)
+ --     image.save(f,imgg)
+--      imgg=nil
 
-      f=build_filename("YIG",params.output_image, t)
-      displab=nil
-    collectgarbage('collect')
-      imgg2=TransferBlackViaYIQ(disp,content_image)
-      image.save(f,imgg2)
-      imgg=nil
+   --   f=build_filename("YIG",params.output_image, t)
+  --    displab=nil
+ --   collectgarbage('collect')
+ --     imgg2=TransferBlackViaYIQ(disp,content_image)
+--      image.save(f,imgg2)
+--      imgg=nil
+
     end
   end
 
@@ -752,21 +753,18 @@ return img:cuda()
 end
 
 
-function TransferBlackViaHSV(img,orig)
-    return img
-end 
-function TransferBlackViaHSV3(img,orig)
+function TransferBlackViaHSL3(img,orig)
 
 
     collectgarbage('collect')
 
 	imgo=orig:double()
-	imgt=image.rgb2hsv(img)
-	imgo=image.rgb2hsv(imgo)
+	imgt=image.rgb2hsl(img)
+	imgo=image.rgb2hsl(imgo)
 
-    imgt[2]=imgo[2]
-    imgt[1]=imgo[1]
-	img=image.hsv2rgb(imgt)
+    imgt[3]=imgo[3]
+
+	img=image.hsl2rgb(imgt)
 	collectgarbage('collect')
 
 

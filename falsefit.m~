@@ -1,0 +1,12 @@
+x =rand(9,1)*10
+y = x + 0.1*randn(size(x));
+
+p = polyfit(x,y,10)
+t2 = 0:0.01:max(x)
+y2 = polyval(p,t2);
+figure
+
+plot(x,y,'o',t2,y2)
+hold on
+pp = polyfit(x,y)
+plot()

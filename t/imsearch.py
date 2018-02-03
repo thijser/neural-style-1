@@ -16,7 +16,8 @@ query=query.replace("_"," ")
 image_type="ActiOn"
 query= query.split()
 query='+'.join(query)
-url="https://www.google.co.in/search?q="+query+"&safe=off&source=lnms&tbm=isch&num=25"
+url="https://www.google.co.in/search?q="+query+"&tbs=ic:color&safe=off&source=lnms&tbm=isch&num=25"
+
 print url
 #add the directory for your image here
 DIR="Pictures"

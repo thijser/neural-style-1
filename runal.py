@@ -43,7 +43,6 @@ def runal(filename,cnt):
         os.system("rm t/Pictures/* -r")
         print("./runSelector.sh " + contentstr[1:] + " 300" +" "+str(cnt*30000))
         os.system("./runSelector.sh " + contentstr[1:] + " 300"+ " "+str(cnt)) 
-        #os.system("./runSelector.sh ")  
         SelectedStr=ReadInSelectorOutput()
         
                 
@@ -62,7 +61,7 @@ def runal(filename,cnt):
  
 
 for imgname in sys.argv:
-  for cnt in range(0,6):
+  for cnt in range(0,10):
    if ".png" in imgname or ".jpg" in imgname:
      runal(imgname,cnt)
 

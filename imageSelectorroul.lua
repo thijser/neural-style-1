@@ -20,12 +20,12 @@ cmd:option('-image_count',5)
 cmd:option('-proto_file', 'models/VGG_ILSVRC_19_layers-deploy.prototxt')
 cmd:option('-model_file', 'models/VGG_ILSVRC_19_layers.caffemodel')
 cmd:option('-selectorGenerations', 200999)
-cmd:option('-timestop',600)
+cmd:option('-timestop',180)
 cmd:option('-selectorWidth', 4)
 cmd:option('-selectorDepth', 5)
 cmd:option('-neural_Content_eval_Layer' ,'conv5_4') 
 cmd:option('-colweight' , 90000)
-cmd:option('mode','roulmate') --roulmate,topmate,top,roul,rand
+cmd:option('mode','topmate') --roulmate,topmate,top,roul,rand
 cmd:option('mutatechance',1)
 
 
@@ -76,6 +76,11 @@ cache={}
 	evalValue=coleval+neuroval
 	cache[selectedImages]=evalValue
 	NumEval=NumEval+1
+    print("neuro:")
+	print(neuroval)
+    print("col:")
+	print(coleval)
+    print("blub")
     return evalValue
 	
 end
@@ -434,10 +439,18 @@ function mate(parentA, parentB)
 
  return res
    
-
-
 end
+
+function ElementwiseMin(a,b)
+	b[a:lt(b)]=a
+	return b
+end
+
  function neuralEval(params, selectedImages)
+
+
+
+
     collectgarbage()
 	cnn=buildSelectorNetworkOrGet(params)
   targetImage_caffe = image.load(params.target_image, 3)
@@ -480,7 +493,8 @@ end
 
 		end
 	end
-
+	local distmat=torch.Tensor(targetStructure:size())
+	distmat=distmat:fill(1e308):cuda()
 	local contentDist=0
 	
 	for imageIndex =1, #selectedImages do
@@ -510,15 +524,16 @@ end
 			 for i = 1, #cnn do
 		layer=cnn:get(i)
 		if layer.name=='conv5_4' then
-			gram:forward(layer.output)			
+			gram:forward(layer.output)		
 			contentDist=contentDist+torch.sum(torch.abs(gram.output-targetStructure))
+			distmat=ElementwiseMin(distmat,torch.abs(gram.output-targetStructure))
 
-
+            
 		end
 	end
 		
 	end
-
+   contentDist=torch.sum(distmat)
 
 
 	return contentDist
@@ -571,9 +586,10 @@ function ColourCompareHistEMD (images)
 			local loss2 = criterion:forward(r2[i],r2[j])
 			local loss3 = criterion:forward(r3[i],r3[j])
 			sumdistance = sumdistance + loss+loss2+loss3
-			
+
        end
    end
+   sumdistance=sumdistance/(#images*#images)/3
 return sumdistance
 end
 
