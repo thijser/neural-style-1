@@ -82,6 +82,7 @@ print(collectgarbage("count")*1024)
       cnn:cl()
     end
   end
+   print("inital settings selected")
       collectgarbage()
   content_image = image.load(params.content_image, 3)
   content_image = image.scale(content_image, params.image_size, 'bilinear')
@@ -96,7 +97,7 @@ print(collectgarbage("count")*1024)
     local img_caffe = preprocess(img):float()
     table.insert(style_images_caffe, img_caffe)
   end
-
+   print("image loaded")
   -- Handle style blending weights for multiple style inputs
   local style_blend_weights = nil
   if params.style_blend_weights == 'nil' then
@@ -137,7 +138,7 @@ print(collectgarbage("count")*1024)
   
   local content_layers = params.content_layers:split(",")
   local style_layers = params.style_layers:split(",")
-
+  print("setting up style and content loss modules")
   -- Set up the network, inserting style and content loss modules
   local content_losses, style_losses = {}, {}
   local next_content_idx, next_style_idx = 1, 1
