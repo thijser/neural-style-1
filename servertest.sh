@@ -1,3 +1,4 @@
+#! /bin/sh
 #SBATCH --job-name=neuralstyle
 #SBATCH --partition=general
 #SBATCH --qos=short

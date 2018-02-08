@@ -30,7 +30,7 @@ def runal(filename,cnt,clv):
         fnm=filename.replace("\\","")
 
         os.chdir("zhang/colorization")
-        os.system("python3 colorize.py -img_in ../../"+filename+" -img_out ../../out/prepro.png  > /dev/null" )
+        os.system("python colorize.py -img_in ../../"+filename+" -img_out ../../out/prepro.png" )
         os.chdir("../..")
         
         print("executing everything")
