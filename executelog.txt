@@ -222,3 +222,5 @@ th neural_stylerun.lua -content_image out/prepro.png  -style_image t/Pictures/ki
 th neural_stylerun.lua -content_image out/prepro.png  -style_image t/Pictures/kingfisher/ActiOn_70.jpg,t/Pictures/kingfisher/ActiOn_92.jpg,t/Pictures/kingfisher/ActiOn_14.jpg -output_image in/kingfisher.jpgcnt=3clv=90000_out.png
 th neural_stylerun.lua -content_image out/prepro.png  -style_image t/Pictures/kingfisher/ActiOn_9.jpg,t/Pictures/kingfisher/ActiOn_44.jpg,t/Pictures/kingfisher/ActiOn_35.jpg -output_image in/kingfisher.jpgcnt=3clv=120000_out.png
 th neural_stylerun.lua -content_image out/prepro.png  -style_image t/Pictures/kingfisher/ActiOn_88.jpg,t/Pictures/kingfisher/ActiOn_38.jpg,t/Pictures/kingfisher/ActiOn_65.jpg -output_image in/kingfisher.jpgcnt=3clv=150000_out.png
+/home/nfs/thijsboumans/distro/install/bin/th neural_stylerun.lua -content_image out/prepro.png  -style_image 408 -output_image in/tank.jpgcnt=1clv=0_out.png
+/home/nfs/thijsboumans/distro/install/bin/th neural_stylerun.lua -content_image out/prepro.png  -style_image t/Pictures/kingfisher/ActiOn_11.jpg -output_image in/tank.jpgcnt=1clv=0_out.png
