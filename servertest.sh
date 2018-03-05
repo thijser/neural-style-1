@@ -5,7 +5,7 @@
 #SBATCH --time=0:20:00
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=1
-#SBATCH --mem=4096
+#SBATCH --mem=8100
 #SBATCH --mail-type=ALL
 #SBATCH --workdir=/tudelft.net/...
 #SBATCH --gres=gpu:pascal:1
