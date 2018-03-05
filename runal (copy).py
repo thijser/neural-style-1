@@ -34,7 +34,7 @@ def runal(filename,cnt,clv):
         os.chdir("../..")
         
         print("executing everything")
-        os.system("th imageRecon.lua -target_image out/prepro.png")
+        os.system("/home/nfs/thijsboumans/distro/install/bin/th imageRecon.lua -target_image out/prepro.png")
         print("ran recon")
         lines=ReadInreconOutput()
         contentstr=""
@@ -52,7 +52,7 @@ def runal(filename,cnt,clv):
         
                 
         
-        strcmd="th neural_stylerun.lua -content_image out/prepro.png " + " -style_image "+ SelectedStr + " -output_image "+fnm+"cnt="+str(cnt)+"clv="+str(clv*30000)+"_out.png"
+        strcmd="/home/nfs/thijsboumans/distro/install/bin/th neural_stylerun.lua -content_image out/prepro.png " + " -style_image "+ SelectedStr + " -output_image "+fnm+"cnt="+str(cnt)+"clv="+str(clv*30000)+"_out.png"
         print(strcmd)
         os.system(strcmd)
 

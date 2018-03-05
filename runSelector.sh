@@ -14,6 +14,8 @@ cd ..
 
 echo $PATH
 c="th imageSelectorroul.lua -avaible_images $(find t/Pictures -type f \( -iname \*.jpg -o -iname \*.png \) -printf '%p,' | sed 's/,$//') " 
+#c="/home/nfs/thijsboumans/distro/install/bin/th imageSelectorroul.lua -avaible_images $(find t/Pictures -type f \( -iname \*.jpg -o -iname \*.png \) -printf '%p,' | sed 's/,$//') -colweight $3 -image_count $4 " 
+
 
 echo $c
 eval $c
