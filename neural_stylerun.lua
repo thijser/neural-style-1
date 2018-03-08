@@ -6,15 +6,16 @@ local cmd = torch.CmdLine()
 cmd:option('-style_image', 'tt.png,tankcol.jpg',
            'Style target image')
 cmd:option('-style_blend_weights', 'nil')
-cmd:option('-content_image', 'LShH540.jpg',
+cmd:option('-content_image', 'out/prepro.png',
            'Content target image')
 cmd:option('-image_size', 512, 'Maximum height / width of generated image')
 cmd:option('-gpu', 0, 'Zero-indexed ID of the GPU to use; for CPU mode set -gpu = -1')
 
 -- Optimization options
 cmd:option('-content_weight', 5e0)
-cmd:option('-style_weight', 0)
-cmd:option('-tv_weight', 1e-3)
+
+cmd:option('-style_weight', 4e2)
+cmd:option('-tv_weight', 4e-3)
 cmd:option('-num_iterations', 1000)
 cmd:option('-normalize_gradients', false)
 cmd:option('-init', 'image', 'random|image')
@@ -22,8 +23,8 @@ cmd:option('-optimizer', 'lbfgs', 'lbfgs|adam')
 cmd:option('-learning_rate', 1e1)
 
 -- Output options
-cmd:option('-print_iter', 1000)
-cmd:option('-save_iter', 1000)
+cmd:option('-print_iter', 999)
+cmd:option('-save_iter', 999)
 cmd:option('-output_image', 'out.png')
 
 -- Other options

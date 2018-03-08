@@ -91,9 +91,9 @@ class MyApp(object):
 
 		contentstr=contentstr.replace(",","")
 		contentstr=contentstr.replace(" ","_")
-		os.system("rm t/Pictures/* -r")
+#		os.system("rm t/Pictures/* -r")
 		print("./runSelector.sh " + contentstr[1:] + " 300 " +str(5))
-		os.system("./runSelector.sh " + contentstr[1:] + " 300 "+ str(5))   
+#		os.system("./runSelector.sh " + contentstr[1:] + " 300 "+ str(5))   
 		#os.system("./runSelector.sh ")  
 		SelectedStr=self.ReadInSelectorOutput()
 
