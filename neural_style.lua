@@ -5,7 +5,10 @@ require 'optim'
 
 require 'loadcaffe'
 
+starttime=os.time()
 
+math.randomseed(starttime)
+rndsavename=math.random()
 
 
 function main(params)
@@ -265,6 +268,7 @@ end
   end
 
   local function maybe_print(t, loss)
+   
     local verbose = (params.print_iter > 0 and t % params.print_iter == 0)
     if verbose then
       print(string.format('Iteration %d / %d', t, params.num_iterations))
@@ -357,7 +361,7 @@ end
 
     maybe_print(num_calls, loss)
     maybe_save(num_calls)
-
+	logep(num_calls,loss)
     collectgarbage()
     -- optim.lbfgs expects a vector for gradients
     return loss, grad:view(grad:nElement())
@@ -672,6 +676,15 @@ function TransferBlackViaHSVelement(imag,bwimage)
 
 return imag/128;
 end
+
+function logep(loss,epoch)
+
+    logfile = assert(io.open('iterlog'..rndsavename..'.txt', "a"))
+    print("log: " .. score )
+    logfile:write(loss,' ',epoch,' ',os.time()-starttime,"\n")
+    logfile:close()
+end
+
 function campTo1or0 (Tensor3d)
 
 	tensor_width=Tensor3d:size()[2]
